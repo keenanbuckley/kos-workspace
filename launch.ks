@@ -48,7 +48,7 @@ until ship:apoapsis > finalAltitude {
     } else if ship:velocity:surface:mag >= initialSpeed and ship:velocity:surface:mag < 80*turnRate+initialSpeed {
         set pitch to 90 - (ship:velocity:surface:mag-initialSpeed)/turnRate.
         set yaw to compassHeading.
-        print "Pitching to " + round(pitch,0) + " degrees           " at (0,15).
+        print "Pitching to " + round(pitch) + " degrees           " at (0,15).
     } else if ship:velocity:surface:mag >= 80*turnRate+initialSpeed {
         set pitch to 10.
         set yaw to compassHeading.
@@ -58,8 +58,8 @@ until ship:apoapsis > finalAltitude {
 
 // Cut throttle and coast until ship exits atmosphere
 clearline(15).
-print "Reached apoapsis of " + round(apoapsis,0) + " meters, cutting throttle" at (0,15).
-print "Cruising to " + round(ship:body:atm:height,0) + " meters" at (0,16).
+print "Reached apoapsis of " + round(apoapsis) + " meters, cutting throttle" at (0,15).
+print "Cruising to " + round(ship:body:atm:height) + " meters" at (0,16).
 lock throttle to 0.
 wait until ship:altitude > ship:body:atm:height.
 
@@ -77,7 +77,7 @@ local circNode is nodeChangePeriapsis(apoapsis).
 add circNode.
 
 clearScreen.
-print "Reached apoapsis of " + round(apoapsis,0) + " meters, cutting throttle" at (0,15).
+print "Reached apoapsis of " + round(apoapsis) + " meters, cutting throttle" at (0,15).
 print "Executing circularization node in " + round(circNode:eta) + " seconds" at (0,16).
 
 // run execute next node script
