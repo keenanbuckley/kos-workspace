@@ -8,7 +8,6 @@ print "RUNNING launch".
 
 // define utility functions
 runoncepath("utils/miscUtils.ks").
-runoncepath("utils/nodeUtils.ks").
 
 // countdown to launch
 print "Count down:".
@@ -82,6 +81,8 @@ sas on.
 
 // if it's possible to make nodes, create and execute a circularization node
 if career:canMakeNodes {
+    runoncepath("utils/nodeUtils.ks").
+
     // create circularization maneuver node
     local circNode is nodeChangePeriapsis(apoapsis).
     add circNode.

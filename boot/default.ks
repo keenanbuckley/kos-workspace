@@ -1,6 +1,7 @@
 // load core scripts
 copyPath("0:/launch.ks", "").
-copyPath("0:/maneuver.ks", "").
+if career:canMakeNodes {copyPath("0:/maneuver.ks", "").}.
 
 //load utility scripts
-copyPath("0:/utils/", "").
+copyPath("0:/utils/miscUtils", "").
+if career:canMakeNodes {copyPath("0:/nodeUtils.ks", "").}.
