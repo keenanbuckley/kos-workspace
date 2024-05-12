@@ -80,12 +80,12 @@ unlock steering.
 sas on.
 
 // if it's possible to make nodes, create and execute a circularization node
-if career:canMakeNodes {
+if career():canMakeNodes {
     runoncepath("utils/nodeUtils.ks").
 
     // create circularization maneuver node
     local circNode is nodeChangePeriapsis(apoapsis).
-    if not circNode = -1 {
+    if circNode:isType("Node") {
         add circNode.
 
         clearScreen.
