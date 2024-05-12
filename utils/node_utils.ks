@@ -39,7 +39,7 @@ function nodeChangePeriapsis {
         local currVel is velocityApoapsis(initialOrbit:apoapsis, initialOrbit:periapsis, initialOrbit:body).
         local targetVel is velocityApoapsis(initialOrbit:apoapsis, targetPeriapsis, initialOrbit:body).
         local deltaV is targetVel - currVel.
-        return node(initialOrbit:eta:apoapsis, 0, 0, deltaV).
+        return node(initialOrbit:eta:apoapsis + time:seconds, 0, 0, deltaV).
     }
     return node(0,0,0,0).
 }
@@ -55,7 +55,7 @@ function nodeChangeApoapsis {
         local currVel is velocityApoapsis(initialOrbit:apoapsis, initialOrbit:periapsis, initialOrbit:body).
         local targetVel is velocityApoapsis(targetApoapsis, initialOrbit:periapsis, initialOrbit:body).
         local deltaV is targetVel - currVel.
-        return node(initialOrbit:eta:periapsis, 0, 0, deltaV).
+        return node(initialOrbit:eta:periapsis + time:seconds, 0, 0, deltaV).
     }
     return node(0,0,0,0).
 }
