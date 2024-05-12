@@ -1,6 +1,6 @@
 //misc_utils
 
-function clearline {
+function clearLine {
     parameter line.
     print "                                                    " at(0,line).
 }

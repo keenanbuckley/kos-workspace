@@ -1,14 +1,14 @@
 //launch
 
-parameter final_alt, compass_heading, turn_rate.
+parameter finalAltitude, compassHeading, turnRate.
 
 // clear screen to display only important information
 clearScreen.
 print "RUNNING launch".
 
 // define utility functions
-runoncepath("utils/misc_utils.ks").
-runoncepath("utils/node_utils.ks").
+runoncepath("utils/miscUtils.ks").
+runoncepath("utils/nodeUtils.ks").
 
 // countdown to launch
 print "Count down:".
@@ -30,28 +30,28 @@ when ship:velocity:surface:mag > 1000 and ship:dynamicpressure < 0.01 then {
 }
 
 // setup constants and variables for launch
-set target_twr to 2.0.
+set targetTWR to 2.0.
 lock weight to ship:sensors:grav:mag * mass.
-lock throttle to choose target_twr*weight/availableThrust if availableThrust > 0 else 0.
-set initial_speed to 100.
+lock throttle to choose targetTWR*weight/availableThrust if availableThrust > 0 else 0.
+set initialSpeed to 100.
 set yaw to 0.
 set pitch to 90.
 lock steering to heading(yaw, pitch).
 
 // execute launch up until ship's apoapsis is at target
-until ship:apoapsis > final_alt {
+until ship:apoapsis > finalAltitude {
     // launch straight up with no turning
-    if ship:velocity:surface:mag < initial_speed {
-        print "Accelerating to " + initial_speed + " m/s" at(0,15).
+    if ship:velocity:surface:mag < initialSpeed {
+        print "Accelerating to " + initialSpeed + " m/s" at(0,15).
     
     // pitch down in accordance to turn rate
-    } else if ship:velocity:surface:mag >= initial_speed and ship:velocity:surface:mag < 80*turn_rate+initial_speed {
-        set pitch to 90 - (ship:velocity:surface:mag-initial_speed)/turn_rate.
-        set yaw to compass_heading.
+    } else if ship:velocity:surface:mag >= initialSpeed and ship:velocity:surface:mag < 80*turnRate+initialSpeed {
+        set pitch to 90 - (ship:velocity:surface:mag-initialSpeed)/turnRate.
+        set yaw to compassHeading.
         print "Pitching to " + round(pitch,0) + " degrees           " at (0,15).
-    } else if ship:velocity:surface:mag >= 80*turn_rate+initial_speed {
+    } else if ship:velocity:surface:mag >= 80*turnRate+initialSpeed {
         set pitch to 10.
-        set yaw to compass_heading.
+        set yaw to compassHeading.
         print "Pitching to 10 degrees" at (0,15).
     }
 }
@@ -64,20 +64,20 @@ lock throttle to 0.
 wait until ship:altitude > ship:body:atm:height.
 
 // burn again to account for air friction losses
-if ship:apoapsis < final_alt {
+if ship:apoapsis < finalAltitude {
     kuniverse:timewarp:cancelwarp().
     wait 1.
-    lock throttle to choose target_twr*weight/availableThrust if availableThrust > 0 else 0.
-    wait until ship:apoapsis > final_alt.
+    lock throttle to choose targetTWR*weight/availableThrust if availableThrust > 0 else 0.
+    wait until ship:apoapsis > finalAltitude.
     lock throttle to 0.
 }
 
 // create circularization maneuver node
 local circNode is nodeChangePeriapsis(apoapsis).
 add circNode.
-clearline(15).
+clearLine(15).
 print "Reached apoapsis of " + round(apoapsis,0) + " meters, cutting throttle" at (0,15).
-clearline(16).
+clearLine(16).
 print "Executing circularization node in " + circNode:eta + " seconds" at (0,16).
 
 // run execute next node script
@@ -85,7 +85,7 @@ run maneuver.
 
 // sets user's throttle setting to zero to prevent throttle from
 // returning to the throttle value it was before it was run
-set ship:control:pilotmainthrottle to 0.
+set ship:control:pilotMainThrottle to 0.
 
 // unlock steering and turn on stability assist
 unlock steering.
