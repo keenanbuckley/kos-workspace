@@ -18,6 +18,7 @@ wait until nd:eta <= burnStart + 60.
 
 // turn to face the direction the rocket's velocity is changing in
 set dv0 to nd:deltaV.
+sas off.
 lock steering to dv0.
 
 // wait until rocket is facing the right direction

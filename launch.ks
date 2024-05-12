@@ -72,13 +72,28 @@ if ship:apoapsis < finalAltitude {
     lock throttle to 0.
 }
 
-// create circularization maneuver node
-local circNode is nodeChangePeriapsis(apoapsis).
-add circNode.
+// sets user's throttle setting to zero to prevent throttle from
+// returning to the throttle value it was before it was run
+set ship:control:pilotMainThrottle to 0.
 
-clearScreen.
-print "Reached apoapsis of " + round(apoapsis) + " meters, cutting throttle" at (0,15).
-print "Executing circularization node in " + round(circNode:eta) + " seconds" at (0,16).
+// unlock steering and turn on stability assist
+unlock steering.
+sas on.
 
-// run execute next node script
-run maneuver.
+// if it's possible to make nodes, create and execute a circularization node
+if career:canMakeNodes {
+    // create circularization maneuver node
+    local circNode is nodeChangePeriapsis(apoapsis).
+    add circNode.
+
+    clearScreen.
+    print "Reached apoapsis of " + round(apoapsis) + " meters, cutting throttle" at (0,15).
+    print "Executing circularization node in " + round(circNode:eta) + " seconds" at (0,16).
+
+    // run execute next node script
+    run maneuver.
+
+// else just point sas at prograde
+} else {
+    set sasMode to "prograde".
+}
