@@ -85,15 +85,16 @@ if career:canMakeNodes {
 
     // create circularization maneuver node
     local circNode is nodeChangePeriapsis(apoapsis).
-    add circNode.
+    if not circNode = -1 {
+        add circNode.
 
-    clearScreen.
-    print "Reached apoapsis of " + round(apoapsis) + " meters, cutting throttle" at (0,15).
-    print "Executing circularization node in " + round(circNode:eta) + " seconds" at (0,16).
+        clearScreen.
+        print "Reached apoapsis of " + round(apoapsis) + " meters, cutting throttle" at (0,15).
+        print "Executing circularization node in " + round(circNode:eta) + " seconds" at (0,16).
 
-    // run execute next node script
-    run maneuver.
-
+        // run execute next node script
+        run maneuver.
+    }
 // else just point sas at prograde
 } else {
     set sasMode to "prograde".

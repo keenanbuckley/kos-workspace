@@ -41,7 +41,7 @@ function nodeChangePeriapsis {
         local deltaV is targetVel - currVel.
         return node(initialOrbit:eta:apoapsis + time:seconds, 0, 0, deltaV).
     }
-    return node(0,0,0,0).
+    return -1.
 }
 
 // generate a node at periapsis to change the height of the apoapsis
@@ -57,5 +57,5 @@ function nodeChangeApoapsis {
         local deltaV is targetVel - currVel.
         return node(initialOrbit:eta:periapsis + time:seconds, 0, 0, deltaV).
     }
-    return node(0,0,0,0).
+    return -1.
 }
