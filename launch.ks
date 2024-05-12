@@ -6,9 +6,11 @@ parameter final_alt, compass_heading, turn_rate.
 clearScreen.
 print "RUNNING launch".
 
+// define utility functions
 runoncepath("utils/misc_utils.ks").
+runoncepath("utils/node_utils.ks").
 
-// Countdown tp launch
+// countdown to launch
 print "Count down:".
 from {local countdown is 3.} until countdown = 0 step {set countdown to countdown - 1.} do {
     print "..." + countdown.
@@ -69,6 +71,17 @@ if ship:apoapsis < final_alt {
     wait until ship:apoapsis > final_alt.
     lock throttle to 0.
 }
+
+// create circularization maneuver node
+local circNode is nodeChangePeriapsis(apoapsis).
+add circNode.
+clearline(15).
+print "Reached apoapsis of " + round(apoapsis,0) + " meters, cutting throttle" at (0,15).
+clearline(16).
+print "Executing circularization node in " + circNode:eta + " seconds" at (0,16).
+
+// run execute next node script
+run maneuver.
 
 // sets user's throttle setting to zero to prevent throttle from
 // returning to the throttle value it was before it was run
