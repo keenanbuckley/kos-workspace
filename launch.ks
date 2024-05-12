@@ -35,7 +35,7 @@ lock weight to ship:sensors:grav:mag * mass.
 lock throttle to choose target_twr*weight/availableThrust if availableThrust > 0 else 0.
 set initial_speed to 100.
 set yaw to 0.
-set pitch to 0.
+set pitch to 90.
 lock steering to heading(yaw, pitch).
 
 // execute launch up until ship's apoapsis is at target
