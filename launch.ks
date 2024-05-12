@@ -6,7 +6,7 @@ parameter final_alt, compass_heading, turn_rate.
 clearScreen.
 print "RUNNING launch".
 
-run misc_utils.
+runoncepath("utils/misc_utils.ks").
 
 // Countdown tp launch
 print "Count down:".
