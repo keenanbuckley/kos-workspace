@@ -78,7 +78,7 @@ add circNode.
 
 clearScreen.
 print "Reached apoapsis of " + round(apoapsis,0) + " meters, cutting throttle" at (0,15).
-print "Executing circularization node in " + circNode:eta + " seconds" at (0,16).
+print "Executing circularization node in " + round(circNode:eta) + " seconds" at (0,16).
 
 // run execute next node script
 run maneuver.
