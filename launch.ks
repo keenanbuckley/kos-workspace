@@ -1,6 +1,6 @@
 //launch
 
-parameter finalAltitude, compassHeading, turnRate.
+declare parameter finalAltitude, compassHeading, turnRate.
 
 // clear screen to display only important information
 clearScreen.
@@ -66,7 +66,7 @@ wait until ship:altitude > ship:body:atm:height.
 // burn again to account for air friction losses
 if ship:apoapsis < finalAltitude {
     kuniverse:timewarp:cancelwarp().
-    wait 1.
+    wait until kuniverse:timewarp:isSettled().
     lock throttle to choose targetTWR*weight/availableThrust if availableThrust > 0 else 0.
     wait until ship:apoapsis > finalAltitude.
     lock throttle to 0.
@@ -75,18 +75,10 @@ if ship:apoapsis < finalAltitude {
 // create circularization maneuver node
 local circNode is nodeChangePeriapsis(apoapsis).
 add circNode.
-clearLine(15).
+
+clearScreen.
 print "Reached apoapsis of " + round(apoapsis,0) + " meters, cutting throttle" at (0,15).
-clearLine(16).
 print "Executing circularization node in " + circNode:eta + " seconds" at (0,16).
 
 // run execute next node script
 run maneuver.
-
-// sets user's throttle setting to zero to prevent throttle from
-// returning to the throttle value it was before it was run
-set ship:control:pilotMainThrottle to 0.
-
-// unlock steering and turn on stability assist
-unlock steering.
-sas on.
