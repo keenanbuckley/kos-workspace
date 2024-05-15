@@ -52,8 +52,8 @@ function nodeChangeApoapsis {
     // As of now, this function can only generate nodes at the periapsis
     // also bound target apoapsis to range
     if not initialOrbit:hasNextPatch and targetApoapsis < initialOrbit:body:soiradius and targetApoapsis > 0 {
-        local currVel is velocityApoapsis(initialOrbit:apoapsis, initialOrbit:periapsis, initialOrbit:body).
-        local targetVel is velocityApoapsis(targetApoapsis, initialOrbit:periapsis, initialOrbit:body).
+        local currVel is velocityPeriapsis(initialOrbit:apoapsis, initialOrbit:periapsis, initialOrbit:body).
+        local targetVel is velocityPeriapsis(targetApoapsis, initialOrbit:periapsis, initialOrbit:body).
         local deltaV is targetVel - currVel.
         return node(initialOrbit:eta:periapsis + time:seconds, 0, 0, deltaV).
     }
