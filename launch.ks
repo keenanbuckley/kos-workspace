@@ -41,9 +41,16 @@ lock gravAcc to body:mu/((body:radius + altitude)*(body:radius + altitude)).
 lock weight to gravAcc * mass.
 lock throttle to choose targetTWR*weight/availableThrust if availableThrust > 0 else 0.
 set initialSpeed to 100.
-set yaw to 0.
+
+sas on.
+set sasMode to "stability".
+set yaw to compassHeading.
 set pitch to 90.
+
+when ship:velocity:surface:mag > initialSpeed then {
+    sas off.
 lock steering to heading(yaw, pitch).
+}
 
 // execute launch up until ship's apoapsis is at target
 until ship:apoapsis > finalAltitude {
