@@ -23,6 +23,13 @@ when maxThrust = 0 then {
     preserve.
 }
 
+// setup trigger to state whenever nonrestartable engines flameout
+when not getSpentNonRestartableEngines():empty then {
+    print "Staging.".
+    stage.
+    preserve.
+}
+
 // setup trigger to deploy action group 1 (solar panels, antennas, etc.) at less than 0.01 dynamic pressure
 when ship:velocity:surface:mag > 1000 and ship:dynamicpressure < 0.01 then {
     ag1 on.
