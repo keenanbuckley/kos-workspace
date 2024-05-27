@@ -1,6 +1,9 @@
 //launch
 
-declare parameter finalAltitude, compassHeading, turnRate.
+// these defaults seem to work well when launching from KSC
+declare parameter finalAltitude is 80000.
+declare parameter compassHeading is 90.
+declare parameter turnRate is 12.
 
 // clear screen to display only important information
 clearScreen.
@@ -49,7 +52,7 @@ set pitch to 90.
 
 when ship:velocity:surface:mag > initialSpeed then {
     sas off.
-lock steering to heading(yaw, pitch).
+    lock steering to heading(yaw, pitch).
 }
 
 // execute launch up until ship's apoapsis is at target
