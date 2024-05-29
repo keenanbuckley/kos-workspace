@@ -1,9 +1,9 @@
 //transfer
 // this script creates a maneuver node to capture around a body
 
-declare parameter patchNum is 1.
 declare parameter opp is -1.
 declare parameter conj is -1.
+declare parameter patchNum is 1.
 declare parameter execute is false.
 
 // define utility functions
