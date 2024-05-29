@@ -20,17 +20,11 @@ from {local countdown is 3.} until countdown = 0 step {set countdown to countdow
     wait 1.
 }
 
-// setup trigger to stage whenever thrust is zero
-when maxThrust = 0 then {
+// setup trigger to stage whenever thrust is zero or static engines flameout
+when maxThrust = 0 or staticFlameout() then {
     print "Staging.".
     stage.
-    preserve.
-}
-
-// setup trigger to stage whenever static engines flameout
-when staticFlameout() then {
-    print "Staging.".
-    stage.
+    wait until stage:ready.
     preserve.
 }
 
