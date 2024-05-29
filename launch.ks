@@ -11,6 +11,7 @@ print "RUNNING launch".
 
 // define utility functions
 runoncepath("utils/miscUtils.ks").
+runoncepath("utils/engineUtils.ks").
 
 // countdown to launch
 print "Count down:".
@@ -26,8 +27,8 @@ when maxThrust = 0 then {
     preserve.
 }
 
-// setup trigger to state whenever nonrestartable engines flameout
-when not getSpentNonRestartableEngines():empty then {
+// setup trigger to stage whenever static engines flameout
+when staticFlameout() then {
     print "Staging.".
     stage.
     preserve.
@@ -42,7 +43,8 @@ when ship:velocity:surface:mag > 1000 and ship:dynamicpressure < 0.01 then {
 set targetTWR to 2.0.
 lock gravAcc to body:mu/((body:radius + altitude)*(body:radius + altitude)).
 lock weight to gravAcc * mass.
-lock throttle to choose targetTWR*weight/availableThrust if availableThrust > 0 else 0.
+// lock throttle to choose targetTWR*weight/availableThrust if availableThrust > 0 else 0.
+lock throttle to throttleForThrust(targetTWR * weight).
 set initialSpeed to 100.
 
 sas on.
@@ -84,7 +86,7 @@ wait until ship:altitude > ship:body:atm:height.
 if ship:apoapsis < finalAltitude {
     kuniverse:timewarp:cancelwarp().
     wait until kuniverse:timewarp:isSettled().
-    lock throttle to choose targetTWR*weight/availableThrust if availableThrust > 0 else 0.
+    lock throttle to throttleForThrust(targetTWR * weight).
     wait until ship:apoapsis > finalAltitude.
     lock throttle to 0.
 }
