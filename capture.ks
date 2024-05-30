@@ -32,5 +32,5 @@ if targetPatch:eccentricity >= 1 {
     }
 
     // create nodes
-    run transfer(opp, conj, targetPatch, execute).
+    run transfer(opp, conj, execute, targetPatch).
 }

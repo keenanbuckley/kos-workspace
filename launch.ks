@@ -37,7 +37,6 @@ when ship:velocity:surface:mag > 1000 and ship:dynamicpressure < 0.01 then {
 set targetTWR to 2.0.
 lock gravAcc to body:mu/((body:radius + altitude)*(body:radius + altitude)).
 lock weight to gravAcc * mass.
-// lock throttle to choose targetTWR*weight/availableThrust if availableThrust > 0 else 0.
 lock throttle to throttleForThrust(targetTWR * weight).
 set initialSpeed to 100.
 
