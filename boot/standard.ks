@@ -4,7 +4,7 @@ wait until ship:unpacked.
 print "Ship is now unpacked.".
 
 // load update script if possible
-copyPath("0:/update.ks", "").
+copyPath("0:/update", "").
 
 // load rocket_state
 local rocket_state is readJson("rocket_state.json").
