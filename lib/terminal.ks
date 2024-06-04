@@ -1,4 +1,4 @@
-//misc_utils
+// terminal
 
 function clearLine {
     parameter line.

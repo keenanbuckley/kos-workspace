@@ -7,7 +7,7 @@ declare parameter execute is false.
 declare parameter targetPatch is orbit.
 
 // define utility functions
-runoncepath("utils/nodeUtils.ks").
+runoncepath("lib/node.ks").
 
 if peri = -1 {
     set peri to targetPatch:periapsis.

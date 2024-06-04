@@ -7,7 +7,7 @@ declare parameter patchNum is 1.
 declare parameter execute is false.
 
 // define utility functions
-runoncepath("utils/nodeUtils.ks").
+runoncepath("lib/node.ks").
 
 // find target orbit
 set targetPatch to orbit.

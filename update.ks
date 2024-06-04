@@ -4,10 +4,10 @@ if career():canMakeNodes {copyPath("0:/maneuver.ks", "").}.
 if career():canMakeNodes {copyPath("0:/transfer.ks", "").}.
 if career():canMakeNodes {copyPath("0:/capture.ks", "").}.
 
-// load utility scripts
-copyPath("0:/utils/miscUtils.ks", "utils/miscUtils.ks").
-copyPath("0:/utils/engineUtils.ks", "utils/engineUtils.ks").
-if career():canMakeNodes {copyPath("0:/utils/nodeUtils.ks", "utils/nodeUtils.ks").}.
+// load libraries
+copyPath("0:/lib/terminal.ks", "lib/terminal.ks").
+copyPath("0:/lib/engine.ks", "lib/engine.ks").
+if career():canMakeNodes {copyPath("0:/lib/node.ks", "lib/node.ks").}.
 
 // load standard boot script
 copyPath("0:/boot/standard.ks", "boot/standard.ks").

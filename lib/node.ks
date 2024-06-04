@@ -1,4 +1,4 @@
-//node_utils
+// node
 
 // vis viva equation to get the speed of a satellite at a specified altitude and orbit semimajoraxis.
 function visViva {
