@@ -1,13 +1,20 @@
+parameter fromBin is false.
+
+local dir is "0:/".
+if fromBin {
+    set dir to "0:/bin/".
+}
+
 // load core scripts
-copyPath("0:/launch.ks", "").
-if career():canMakeNodes {copyPath("0:/maneuver.ks", "").}.
-if career():canMakeNodes {copyPath("0:/transfer.ks", "").}.
-if career():canMakeNodes {copyPath("0:/capture.ks", "").}.
+copyPath(dir + "launch", "").
+if career():canMakeNodes {copyPath(dir + "maneuver", "").}.
+if career():canMakeNodes {copyPath(dir + "transfer", "").}.
+if career():canMakeNodes {copyPath(dir + "capture", "").}.
 
 // load libraries
-copyPath("0:/lib/terminal.ks", "lib/terminal.ks").
-copyPath("0:/lib/engine.ks", "lib/engine.ks").
-if career():canMakeNodes {copyPath("0:/lib/node.ks", "lib/node.ks").}.
+copyPath(dir + "lib/terminal", "lib/").
+copyPath(dir + "lib/engine", "lib/").
+if career():canMakeNodes {copyPath(dir + "/lib/node", "lib/").}.
 
 // load standard boot script
-copyPath("0:/boot/standard.ks", "boot/standard.ks").
+copyPath(dir + "boot/standard", "boot/").

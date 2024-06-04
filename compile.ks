@@ -5,20 +5,21 @@ function compileDir {
     parameter dest.
 
     for file in fileList {
-        if file:matchesPattern("^[^.]*\.ks$") {
-            compile file to dest + file:replace(".ks", ".ksm").
+        if file:extension = "ks" {
+            compile file to dest + file:name:replace(".ks", ".ksm").
         }
     }
 }
 
+cd("0:/").
 list files in rootList.
 compileDir(rootList, "bin/").
 
-cd("lib").
+cd("0:/lib").
 list files in libList.
-compileDir(libList, "../bin/lib").
+compileDir(libList, "../bin/lib/").
 cd("..").
 
-cd("boot").
+cd("0:/boot").
 list files in bootList.
-compileDir(bootList, "../bin/boot").
+compileDir(bootList, "../bin/boot/").
