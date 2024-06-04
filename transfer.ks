@@ -3,11 +3,18 @@
 
 declare parameter apo.
 declare parameter peri is -1.
+declare parameter patchNum is 0.
 declare parameter execute is false.
-declare parameter targetPatch is orbit.
 
 // define utility functions
 runoncepath("lib/node.ks").
+
+local targetPatch is orbit.
+from {local i is 0.} until i = patchNum step {set i to i+1.} do {
+    if targetPatch:hasnextpatch {
+        set targetPatch to targetPatch:nextpatch.
+    }
+}
 
 if peri = -1 {
     set peri to targetPatch:periapsis.
@@ -15,22 +22,20 @@ if peri = -1 {
 }
 
 // create a node to change apoapsis
-if targetPatch:periapsis < 0 or targetPatch:periapsis < targetPatch:body:atm:height {
+local node1 is nodeChangeApoapsis(apo, targetPatch).
+local node1Alt is targetPatch:periapsis.
+if targetPatch:periapsis < targetPatch:body:atm:height {
     set node1 to nodeChangePeriapsis(apo, targetPatch).
     set node1Alt to targetPatch:apoapsis.
-} else {
-    set node1 to nodeChangeApoapsis(apo, targetPatch).
-    set node1Alt to targetPatch:periapsis.
 }
 
-
 // create a node to change periapsis
+local node2 is nodeChangePeriapsis(peri, targetPatch).
 if node1:isType("Node") {
     add node1.
     if node1:deltav:sqrmagnitude < 0.01 {
         remove node1.
         print "node1 has low dv, removing".
-        set node2 to nodeChangePeriapsis(peri, targetPatch).
     } else {
         print "added node with dv of " + node1:deltav:mag.
         if abs(node1:orbit:periapsis - node1Alt) < abs(node1:orbit:apoapsis - node1Alt) {
@@ -50,6 +55,5 @@ if node1:isType("Node") {
 // execute nodes if true.
 if execute {
     run maneuver.
-    remove nextNode.
     run maneuver.
 }

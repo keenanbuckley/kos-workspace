@@ -1,12 +1,13 @@
 //maneuver
 // this script executes the next maneuver node
 
-// clear screen to display only important information
 print "RUNNING maneuver".
 
 set nd to nextNode.
 
 // calculate crude estimate of burn duration, assuming constant mass (bad assumption)
+local lock availableAcceleration to availableThrust/mass.
+local burnDuration is nd:deltav:mag/availableAcceleration.
 local burnStart is burnDuration/2.
 print("Estimated burn duration of " + round(burnDuration) + " seconds").
 

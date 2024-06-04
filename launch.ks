@@ -35,10 +35,10 @@ when ship:velocity:surface:mag > 1000 and ship:dynamicpressure < 0.01 then {
 
 // setup constants and variables for launch
 set targetTWR to 2.0.
-lock gravAcc to body:mu/((body:radius + altitude)*(body:radius + altitude)).
+lock gravAcc to body:mu/((body:radius + ship:altitude)*(body:radius + ship:altitude)).
 lock weight to gravAcc * mass.
 lock throttle to throttleForThrust(targetTWR * weight).
-set initialSpeed to 100.
+local initialSpeed is 100.
 
 sas on.
 set sasMode to "stability".
@@ -70,7 +70,7 @@ until ship:apoapsis > finalAltitude {
 
 // Cut throttle and coast until ship exits atmosphere
 clearline(15).
-print "Reached apoapsis of " + round(apoapsis) + " meters, cutting throttle" at (0,15).
+print "Reached apoapsis of " + round(ship:apoapsis) + " meters, cutting throttle" at (0,15).
 print "Cruising to " + round(ship:body:atm:height) + " meters" at (0,16).
 lock throttle to 0.
 wait until ship:altitude > ship:body:atm:height.
@@ -94,7 +94,7 @@ sas on.
 
 // if it's possible to make nodes, create and execute a circularization node
 if career():canMakeNodes {
-    runoncepath("utils/nodeUtils.ks").
+    runoncepath("lib/node.ks").
 
     // create circularization maneuver node
     local circNode is nodeChangePeriapsis(apoapsis).

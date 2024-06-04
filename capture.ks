@@ -6,11 +6,8 @@ declare parameter conj is -1.
 declare parameter patchNum is 1.
 declare parameter execute is false.
 
-// define utility functions
-runoncepath("lib/node.ks").
-
 // find target orbit
-set targetPatch to orbit.
+local targetPatch is orbit.
 FROM {local i is 0.} UNTIL i = patchNum STEP {set i to i+1.} DO {
     if targetPatch:hasnextpatch {
         set targetPatch to targetPatch:nextpatch.
@@ -32,5 +29,5 @@ if targetPatch:eccentricity >= 1 {
     }
 
     // create nodes
-    run transfer(opp, conj, execute, targetPatch).
+    run transfer(opp, conj, patchNum, execute).
 }
