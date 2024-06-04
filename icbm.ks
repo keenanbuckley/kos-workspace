@@ -10,9 +10,9 @@ print "RUNNING icbm".
 // only run if trajectories is available
 if addons:tr:available {
     // define utility functions
-    runoncepath("lib/terminal.ks").
-    runoncepath("lib/engine.ks").
-    runoncepath("lib/geo_nav.ks").
+    runoncepath("lib/terminal").
+    runoncepath("lib/engine").
+    runoncepath("lib/geo_nav").
 
     // set target coordinates
     local targetWaypoint is waypoint(targetName).

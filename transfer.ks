@@ -7,7 +7,7 @@ declare parameter patchNum is 0.
 declare parameter execute is false.
 
 // define utility functions
-runoncepath("lib/node.ks").
+runoncepath("lib/node").
 
 local targetPatch is orbit.
 from {local i is 0.} until i = patchNum step {set i to i+1.} do {

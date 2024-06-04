@@ -10,8 +10,8 @@ clearScreen.
 print "RUNNING launch".
 
 // define utility functions
-runoncepath("lib/terminal.ks").
-runoncepath("lib/engine.ks").
+runoncepath("lib/terminal").
+runoncepath("lib/engine").
 
 // countdown to launch
 print "Count down:".
