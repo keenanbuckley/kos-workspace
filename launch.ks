@@ -94,7 +94,7 @@ sas on.
 
 // if it's possible to make nodes, create and execute a circularization node
 if career():canMakeNodes {
-    runoncepath("lib/node.ks").
+    runoncepath("lib/node").
 
     // create circularization maneuver node
     local circNode is nodeChangePeriapsis(apoapsis).

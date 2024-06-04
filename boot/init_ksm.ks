@@ -2,7 +2,7 @@
 copyPath("0:/update.ks", "").
 
 // remove init boot script
-deletePath("boot/init.ks").
+deletePath("boot/init_ksm.ks").
 
 // run update
 run update(True).
