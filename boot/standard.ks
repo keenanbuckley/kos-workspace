@@ -4,7 +4,9 @@ wait until ship:unpacked.
 print "Ship is now unpacked.".
 
 // load update script if possible
-copyPath("0:/update", "").
+if not addons:rt:available or addons:rt:hasKSCConnection(ship) {
+    copyPath("0:/update", "").
+}
 
 // load rocket_state
 local rocket_state is readJson("rocket_state.json").
