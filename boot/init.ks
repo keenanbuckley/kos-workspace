@@ -12,7 +12,7 @@ set rocket_state to lexicon().
 writeJson(rocket_state, "rocket_state.json").
 
 // set standard to be the new boot script
-set core:bootfilename to "boot/standard.ks".
+set core:bootfilename to "boot/standard".
 
 // reboot system to start with the new boot file
 reboot.

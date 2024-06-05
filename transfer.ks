@@ -5,6 +5,7 @@ declare parameter apo.
 declare parameter peri is -1.
 declare parameter patchNum is 0.
 declare parameter execute is false.
+declare parameter safety is true.
 
 // define utility functions
 runoncepath("lib/node").
@@ -22,15 +23,15 @@ if peri = -1 {
 }
 
 // create a node to change apoapsis
-local node1 is nodeChangeApoapsis(apo, targetPatch).
+local node1 is nodeChangeApoapsis(apo, targetPatch, safety).
 local node1Alt is targetPatch:periapsis.
 if targetPatch:periapsis < targetPatch:body:atm:height {
-    set node1 to nodeChangePeriapsis(apo, targetPatch).
+    set node1 to nodeChangePeriapsis(apo, targetPatch, safety).
     set node1Alt to targetPatch:apoapsis.
 }
 
 // create a node to change periapsis
-local node2 is nodeChangePeriapsis(peri, targetPatch).
+local node2 is nodeChangePeriapsis(peri, targetPatch, safety).
 if node1:isType("Node") {
     add node1.
     if node1:deltav:sqrmagnitude < 0.01 {
@@ -39,9 +40,9 @@ if node1:isType("Node") {
     } else {
         print "added node with dv of " + node1:deltav:mag.
         if abs(node1:orbit:periapsis - node1Alt) < abs(node1:orbit:apoapsis - node1Alt) {
-            set node2 to nodeChangePeriapsis(peri, node1:orbit).
+            set node2 to nodeChangePeriapsis(peri, node1:orbit, safety).
         } else {
-            set node2 to nodeChangeApoapsis(peri, node1:orbit).
+            set node2 to nodeChangeApoapsis(peri, node1:orbit, safety).
         }
     }
     

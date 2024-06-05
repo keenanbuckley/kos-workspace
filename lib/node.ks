@@ -32,10 +32,11 @@ function velocityPeriapsis {
 function nodeChangePeriapsis {
     declare parameter targetPeriapsis.
     declare parameter initialOrbit is orbit.
+    declare parameter safety is true.
 
     // bound target to range
     // bound target apoapsis to range
-    if not initialOrbit:hasNextPatch and targetPeriapsis < initialOrbit:body:soiRadius and targetPeriapsis > 0 {
+    if not initialOrbit:hasNextPatch and (not safety or (targetPeriapsis < initialOrbit:body:soiRadius and targetPeriapsis > 0)) {
         local currVel is velocityApoapsis(initialOrbit:apoapsis, initialOrbit:periapsis, initialOrbit:body).
         local targetVel is velocityApoapsis(initialOrbit:apoapsis, targetPeriapsis, initialOrbit:body).
         local deltaV is targetVel - currVel.
@@ -48,10 +49,11 @@ function nodeChangePeriapsis {
 function nodeChangeApoapsis {
     declare parameter targetApoapsis.
     declare parameter initialOrbit is orbit.
+    declare parameter safety is true.
 
     // As of now, this function can only generate nodes at the periapsis
     // also bound target apoapsis to range
-    if targetApoapsis < initialOrbit:body:soiradius and targetApoapsis > 0 {
+    if not safety or (targetApoapsis < initialOrbit:body:soiradius and targetApoapsis > 0) {
         local currVel is velocityPeriapsis(initialOrbit:apoapsis, initialOrbit:periapsis, initialOrbit:body).
         local targetVel is velocityPeriapsis(targetApoapsis, initialOrbit:periapsis, initialOrbit:body).
         local deltaV is targetVel - currVel.
