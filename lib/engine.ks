@@ -38,3 +38,13 @@ function staticFlameout {
     }.
     return false.
 }
+
+function engineFlameout {
+    list engines in myEngines.
+    for eng in myEngines {
+        if eng:flameout {
+            return true.
+        }
+    }.
+    return false.
+}

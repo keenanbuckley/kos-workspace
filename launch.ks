@@ -21,7 +21,7 @@ from {local countdown is 3.} until countdown = 0 step {set countdown to countdow
 }
 
 // setup trigger to stage whenever thrust is zero or static engines flameout
-when maxThrust = 0 or staticFlameout() then {
+when maxThrust = 0 or engineFlameout() then {
     print "Staging.".
     stage.
     wait until stage:ready.
@@ -58,13 +58,9 @@ until ship:apoapsis > finalAltitude {
     
     // pitch down in accordance to turn rate
     } else if ship:velocity:surface:mag >= initialSpeed and ship:velocity:surface:mag < 80*turnRate+initialSpeed {
-        set pitch to 90 - (ship:velocity:surface:mag-initialSpeed)/turnRate.
+        set pitch to max(90 - (ship:velocity:surface:mag-initialSpeed)/turnRate, 10).
         set yaw to compassHeading.
         print "Pitching to " + round(pitch) + " degrees           " at (0,15).
-    } else if ship:velocity:surface:mag >= 80*turnRate+initialSpeed {
-        set pitch to 10.
-        set yaw to compassHeading.
-        print "Pitching to 10 degrees" at (0,15).
     }
 }
 
