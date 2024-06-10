@@ -11,6 +11,8 @@ function compileDir {
     }
 }
 
+set currPath to path().
+
 cd("0:/").
 list files in rootList.
 compileDir(rootList, "bin/").
@@ -23,3 +25,5 @@ cd("..").
 cd("0:/boot").
 list files in bootList.
 compileDir(bootList, "../bin/boot/").
+
+cd(currPath).
