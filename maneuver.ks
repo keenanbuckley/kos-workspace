@@ -3,13 +3,25 @@
 
 print "RUNNING maneuver".
 
+// import libraries
+runOncePath("lib/engine").
+runOncePath("lib/burn").
+
 set nd to nextNode.
 
-// calculate crude estimate of burn duration, assuming constant mass (bad assumption)
-local lock availableAcceleration to availableThrust/mass.
-local burnDuration is nd:deltav:mag/availableAcceleration.
-local burnStart is burnDuration/2.
-print("Estimated burn duration of " + round(burnDuration) + " seconds").
+// calculate estimate of burn duration
+local pressure is 0.
+local flowRate is available_mass_flow_rate_at(pressure).
+
+print "current max flow rate: " + available_mass_flow_rate().
+print "vacuum max flow rate: " + flowRate.
+
+local effectiveExhaustVelocity is ship:availableThrustAt(pressure)/flowRate. // isp in n*s/kg = ev in m/s
+local burnDuration is burn_time(ship:mass, nd:deltav:mag, effectiveExhaustVelocity, flowRate).
+local burnStart is mean_burn_time(ship:mass, nd:deltav:mag, effectiveExhaustVelocity, flowRate).
+print("Estimated burn duration of " + round(burnDuration, 3) + " seconds").
+print("Crude Estimate: " + round(nd:deltav:mag/(ship:availablethrust/ship:mass), 3) + " seconds").
+print("Starting burn " + round(burnStart, 3) + " seconds before node ETA").
 
 // load rocket state
 local rocket_state is readJson("rocket_state.json").
@@ -42,7 +54,7 @@ lock steering to dv0.
 wait until vang(dv0, ship:facing:vector) < 0.25.
 
 // wait until burn start
-wait until nd:eta <= burnStart + 1.
+wait until nd:eta <= burnStart + 10.
 kuniverse:timewarp:cancelwarp().
 wait until kuniverse:timewarp:isSettled().
 wait until nd:eta <= burnStart.
@@ -56,14 +68,10 @@ set throttleSetpoint to 0.
 lock throttle to throttleSetpoint.
 
 // execute maneuver node
-until vDot(dv0, nd:deltav) < 0 {
-    set throttleSetpoint to min(nd:deltav:mag/availableAcceleration, 1).
-
-    if nd:deltaV:mag < 0.1 {
-        wait until vDot(dv0, nd:deltav) < 0.5.
-        break.
-    }
-}
+local burnStop is burnDuration-burnStart.
+set throttleSetpoint to 1.0.
+wait until nd:eta >= burnStop or vDot(dv0, nd:deltav) < 0.
+set throttleSetpoint to 0.0.
 
 // print stats
 print "End burn, remain dv " + round(nd:deltav:mag,1) + "m/s, vdot: " + round(vdot(dv0, nd:deltav),1).

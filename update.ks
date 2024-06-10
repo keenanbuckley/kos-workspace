@@ -16,6 +16,7 @@ if not exists("lib") {createDir("lib"). }
 copyPath(dir + "lib/terminal", "lib/").
 copyPath(dir + "lib/engine", "lib/").
 if career():canMakeNodes {copyPath(dir + "lib/node", "lib/").}.
+if career():canMakeNodes {copyPath(dir + "lib/burn", "lib/").}.
 
 // load standard boot script
 if not exists("boot") {createDir("boot"). }

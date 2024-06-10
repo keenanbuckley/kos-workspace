@@ -1,7 +1,7 @@
 //transfer
 // this script creates the maneuver nodes to execute a Hohmann transfer at the current orbit
 
-declare parameter apo.
+declare parameter apo is -1.
 declare parameter peri is -1.
 declare parameter patchNum is 0.
 declare parameter execute is false.
@@ -17,15 +17,20 @@ from {local i is 0.} until i = patchNum step {set i to i+1.} do {
     }
 }
 
+if apo = -1 {
+    set apo to targetPatch:apoapsis.
+    print "set apo to " + targetPatch:apoapsis.
+}
+
 if peri = -1 {
-    set peri to targetPatch:periapsis.
-    print "set peri to " + targetPatch:periapsis.
+    set peri to apo.
+    print "set peri to " + apo.
 }
 
 // create a node to change apoapsis
 local node1 is nodeChangeApoapsis(apo, targetPatch, safety).
 local node1Alt is targetPatch:periapsis.
-if targetPatch:periapsis < targetPatch:body:atm:height {
+if safety and targetPatch:periapsis < targetPatch:body:atm:height {
     set node1 to nodeChangePeriapsis(apo, targetPatch, safety).
     set node1Alt to targetPatch:apoapsis.
 }

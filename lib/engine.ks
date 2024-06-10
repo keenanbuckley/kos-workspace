@@ -48,3 +48,25 @@ function engineFlameout {
     }.
     return false.
 }
+
+function available_mass_flow_rate {
+    list engines in myEngines.
+    local flow_rate_sum is 0.
+    for eng in myEngines {
+        if eng:availableThrust > 0 {
+            set flow_rate_sum to flow_rate_sum + eng:maxMassFlow*eng:thrustLimit/100.
+        }
+    }.
+    return flow_rate_sum.
+}
+
+function available_mass_flow_rate_at {
+    parameter pressure.
+
+    list engines in myEngines.
+    local flow_rate_sum is 0.
+    for eng in myEngines {
+        set flow_rate_sum to flow_rate_sum + eng:availableThrustAt(pressure)/(eng:ispAt(pressure)*constant:g0).
+    }.
+    return flow_rate_sum.
+}
