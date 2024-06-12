@@ -1,10 +1,8 @@
-//transfer
 // this script creates a maneuver node to capture around a body
 
 declare parameter opp is -1.
 declare parameter conj is -1.
 declare parameter patchNum is 1.
-declare parameter execute is false.
 
 // find target orbit
 local targetPatch is orbit.
@@ -29,5 +27,5 @@ if targetPatch:eccentricity >= 1 {
     }
 
     // create nodes
-    run transfer(opp, conj, patchNum, execute).
+    run transfer(opp, conj, -1, 0, patchNum).
 }

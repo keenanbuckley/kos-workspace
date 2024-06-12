@@ -1,4 +1,3 @@
-//maneuver
 // this script executes the next maneuver node
 
 print "RUNNING maneuver".

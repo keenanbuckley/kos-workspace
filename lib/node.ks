@@ -61,3 +61,21 @@ function nodeChangeApoapsis {
     }
     return -1.
 }
+
+// add a node if delta-v is high enough
+function addNode {
+    parameter newNode.
+    parameter thres is 1e-3.
+
+    if newNode:istype("Node") {
+        add newNode.
+        if abs(allNodes[allNodes:length-1]:prograde) < thres {
+            remove newNode.
+            print "node has low dv, removing".
+        } else {
+            print "added node with dv of " + allNodes[allNodes:length-1]:prograde.
+        }
+    } else {
+        print "failed".
+    }
+}
