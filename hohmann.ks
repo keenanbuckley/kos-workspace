@@ -1,3 +1,4 @@
+// DEPRICATED/OLD CODE, use transfer.ks instead
 // this script creates the maneuver nodes to execute a Hohmann transfer at the current orbit
 
 declare parameter apo is -1. // change current apoapsis to
