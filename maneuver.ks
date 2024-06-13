@@ -69,7 +69,7 @@ lock throttle to throttleSetpoint.
 // execute maneuver node
 local burnStop is burnDuration-burnStart.
 set throttleSetpoint to 1.0.
-wait until nd:eta >= burnStop or vDot(dv0, nd:deltav) < 0.
+wait until nd:eta <= -burnStop or vDot(dv0, nd:deltav) < 0.
 set throttleSetpoint to 0.0.
 
 // print stats
