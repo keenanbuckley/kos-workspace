@@ -16,8 +16,21 @@ print "current max flow rate: " + available_mass_flow_rate().
 print "vacuum max flow rate: " + flowRate.
 
 local effectiveExhaustVelocity is ship:availableThrustAt(pressure)/flowRate. // isp in n*s/kg = ev in m/s
-local burnDuration is burn_time(ship:mass, nd:deltav:mag, effectiveExhaustVelocity, flowRate).
-local burnStart is mean_burn_time(ship:mass, nd:deltav:mag, effectiveExhaustVelocity, flowRate).
+local burnDuration is burn_time(ship:mass, nd:deltav:mag-1, effectiveExhaustVelocity, flowRate).
+
+local next_mass_1 is rocket_equation_final_mass(ship:mass, nd:deltav:mag-1, effectiveExhaustVelocity).
+local flow_rate_1 is next_mass_1/effectiveExhaustVelocity.
+set burnDuration to burnDuration + burn_time(next_mass_1, 0.9, effectiveExhaustVelocity, flow_rate_1).
+
+local next_mass_2 to rocket_equation_final_mass(next_mass_1, 0.9, effectiveExhaustVelocity).
+local flow_rate_2 is 0.1*flow_rate_1.
+set burnDuration to burnDuration + burn_time(next_mass_2, 0.1, effectiveExhaustVelocity, flow_rate_2).
+
+local flowRateSum is flowRate + flow_rate_1 + flow_rate_2.
+local burnStart is (flowRate/flowRateSum)*mean_burn_time(ship:mass, nd:deltav:mag-1, effectiveExhaustVelocity, flowRate).
+set burnStart to burnStart + (flow_rate_1/flowRateSum)*mean_burn_time(next_mass_1, 0.9, effectiveExhaustVelocity, flow_rate_1).
+set burnStart to burnStart + (flow_rate_2/flowRateSum)*mean_burn_time(next_mass_2, 0.1, effectiveExhaustVelocity, flow_rate_2).
+
 print("Estimated burn duration of " + round(burnDuration, 3) + " seconds").
 print("Crude Estimate: " + round(nd:deltav:mag/(ship:availablethrust/ship:mass), 3) + " seconds").
 print("Starting burn " + round(burnStart, 3) + " seconds before node ETA").
@@ -68,9 +81,17 @@ lock throttle to throttleSetpoint.
 
 // execute maneuver node
 local burnStop is burnDuration-burnStart.
-set throttleSetpoint to 1.0.
-wait until nd:eta <= -burnStop or vDot(dv0, nd:deltav) < 0.
-set throttleSetpoint to 0.0.
+lock steering to nd:deltav.
+set throttleSetpoint to 1.
+
+wait until nd:deltaV:mag < 1 or nd:eta <= -burnStop or vDot(dv0, nd:deltav) < 0.
+set throttleSetpoint to 1*ship:mass/ship:availableThrustAt(pressure).
+
+wait until nd:deltaV:mag < 0.1 or nd:eta <= -burnStop or vDot(dv0, nd:deltav) < 0.
+set throttleSetpoint to 0.1*ship:mass/ship:availableThrustAt(pressure).
+
+wait until nd:deltaV:mag < 0.01 or nd:eta <= -burnStop or vDot(dv0, nd:deltav) < 0.
+set throttleSetpoint to 0.
 
 // print stats
 print "End burn, remain dv " + round(nd:deltav:mag,1) + "m/s, vdot: " + round(vdot(dv0, nd:deltav),1).
