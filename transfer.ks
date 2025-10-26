@@ -1,4 +1,4 @@
-// this script creates the maneuver nodes to execute a Bi-elliptic transfer transfer at the target patch
+// this script creates the maneuver nodes to execute a Bi-elliptic transfer at the target patch
 
 parameter apo is -1.            // final apoapsis (defaults to apoapsis of target patch)
 parameter peri is -1.           // final periapsis (defaults to target apoapsis)
@@ -40,20 +40,33 @@ if safety and targetPatch:periapsis < 0 {
     set burn_anomoly to 180.
 }
 
-// create first node for transfer (burn to common apoapsis)
-local node1 is nodeChangeApoapsis(rb, targetPatch, safety).
-local node1Alt is targetPatch:periapsis.
-if hasNode {
-    if burn_anomoly = 0 {
+// create first node for transfer (burn to common apsis)
+local node1 is node(0, 0, 0, 0).
+local node1Alt is 0.
+if hasNode { // if future nodes already exist, start planning from last node's orbit
+    if burn_anomoly = 0 { // adjust common apsis from periapsis
         set node1 to nodeChangeApoapsis(rb, allNodes[allNodes:length-1]:orbit, safety).
         set node1Alt to allNodes[allNodes:length-1]:orbit:periapsis.
-    } else if burn_anomoly = 180 {
+    } else if burn_anomoly = 180 { // adjust common apsis from apoapsis
         set node1 to nodeChangePeriapsis(rb, allNodes[allNodes:length-1]:orbit, safety).
         set node1Alt to allNodes[allNodes:length-1]:orbit:apoapsis.
     }
-} else if burn_anomoly = 180 {
-    set node1 to nodeChangePeriapsis(rb, targetPatch, safety).
-    set node1Alt to targetPatch:apoapsis.
+    // else { // adjust common apsis from target true anomoly
+    //     set node1 to nodeChangeApsis(rb, constant:degtorad * burn_anomoly, allNodes[allNodes:length-1]:orbit, safety).
+    //     set node1Alt to allNodes[allNodes:length-1]:orbit:semimajoraxis * (1 - allNodes[allNodes:length-1]:orbit:eccentricity^2) / (1 + allNodes[allNodes:length-1]:orbit:eccentricity*cos(constant:degtorad * burn_anomoly)).
+    // }
+} else { // if no nodes exist
+    if burn_anomoly = 0 { // adjust common apsis from periapsis
+        set node1 to nodeChangeApoapsis(rb, targetPatch, safety).
+        set node1Alt to targetPatch:semimajoraxis * (1 - targetPatch:eccentricity^2) / (1 + targetPatch:eccentricity).
+    } else if burn_anomoly = 180 { // adjust common apsis from apoapsis
+        set node1 to nodeChangePeriapsis(rb, targetPatch, safety).
+        set node1Alt to targetPatch:semimajoraxis * (1 - targetPatch:eccentricity^2) / (1 - targetPatch:eccentricity).
+    } else { // adjust common apsis from target true anomoly
+        set node1 to nodeChangeApsis(rb, burn_anomoly, targetPatch, safety).
+        set node1Alt to targetPatch:semimajoraxis * (1 - targetPatch:eccentricity^2) / (1 + targetPatch:eccentricity*cos(burn_anomoly)).
+        print(node1Alt).
+    }
 }
 
 // add node if dv is high enough
@@ -61,7 +74,7 @@ print "Adding first node...".
 addNode(node1).
 
 // create second node for transfer (burn to target periapsis)
-local node2 is nodeChangePeriapsis(peri, targetPatch, safety). // default if no nodes exist
+local node2 is node(0, 0, 0, 0). // default if no nodes exist
 if hasNode {
     if abs(allNodes[allNodes:length-1]:orbit:periapsis - node1Alt) < abs(allNodes[allNodes:length-1]:orbit:apoapsis - node1Alt) {
         set node2 to nodeChangePeriapsis(peri, allNodes[allNodes:length-1]:orbit, safety).
@@ -75,7 +88,7 @@ print "Adding second node...".
 addNode(node2).
 
 // create third node for transfer (burn to target apoapsis)
-local node3 is nodeChangePeriapsis(peri, targetPatch, safety). // default if no nodes exist
+local node3 is node(0, 0, 0, 0). // default if no nodes exist
 if hasNode {
     if rb > apo {
         set node3 to nodeChangeApoapsis(apo, allNodes[allNodes:length-1]:orbit, safety).
