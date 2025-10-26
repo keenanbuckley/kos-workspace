@@ -4,6 +4,8 @@
 declare parameter finalAltitude is 80000.
 declare parameter compassHeading is 90.
 declare parameter turnRate is 12.
+parameter targetTWR is 2.0.
+parameter initialSpeed is 100.
 
 // clear screen to display only important information
 clearScreen.
@@ -34,11 +36,9 @@ when ship:velocity:surface:mag > 1000 and ship:dynamicpressure < 0.01 then {
 }
 
 // setup constants and variables for launch
-set targetTWR to 2.0.
 lock gravAcc to body:mu/((body:radius + ship:altitude)^2).
 lock weight to gravAcc * ship:mass.
 lock throttle to throttleForThrust(targetTWR * weight).
-local initialSpeed is 100.
 
 sas on.
 set sasMode to "stability".
