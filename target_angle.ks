@@ -37,16 +37,6 @@ if hasTarget {
     print "Delta Angle at Ownship Periapsis: " + currAngle.
     print "Requested Delta Mean Anomoly: " + targetAngle.
     local lock angleError to (mod(180 + targetAngle-currAngle, 360) - 180).
-    print "Error in Mean Anomoly at Ownship Periapsis: " + angleError.
-    local lock secondsError to (angleError/360)*target:orbit:period.
-    print "Error in Seconds at Ownship Periapsis: " + secondsError.
-
-    local lock singleOrbitPeriod to ship:orbit:period + secondsError.
-    print "Single-Orbit Period: " + singleOrbitPeriod.
-    local lock singleOrbitMajorAxis to 2 * ((body:mu * singleOrbitPeriod^2)/(4 * constant:pi^2))^(1/3).
-    print "Single-Orbit Major Axis: " + singleOrbitMajorAxis.
-    local lock singleOrbitApoapsis to singleOrbitMajorAxis - 2*body:radius - ship:periapsis.
-    print "Single-Orbit Apoapsis: " + singleOrbitApoapsis.
-
-    run transfer(target:orbit:apoapsis, target:orbit:periapsis, singleOrbitApoapsis).
+    
+    run shift_by_anomaly(angleError, target:orbit:apoapsis, target:orbit:periapsis).
 }
