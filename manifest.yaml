@@ -1,0 +1,38 @@
+packages:
+  standard_launch:
+    version: "0.0.0"
+    boot: src/boot/standard.ks
+    offline_scripts:
+      - src/scripts/maneuver.ks
+      - src/scripts/transfer.ks
+    online_scripts:
+      - src/scripts/launch.ks
+      - src/pacman/install.ks
+    persistent_data: true
+    compile: true
+    optimize_libs: true
+
+  standard_orbit:
+    version: "0.0.0"
+    boot: src/boot/standard.ks
+    offline_scripts:
+      - src/scripts/maneuver.ks
+      - src/scripts/transfer.ks
+    online_scripts:
+      - src/pacman/install.ks
+    persistent_data: true
+    compile: true
+    optimize_libs: true
+
+  standard_lander:
+    version: "0.0.0"
+    boot: src/boot/standard.ks
+    offline_scripts:
+      - src/scripts/maneuver.ks
+      - src/scripts/transfer.ks
+    online_scripts:
+      - src/scripts/land.ks
+      - src/pacman/install.ks
+    persistent_data: true
+    compile: true
+    optimize_libs: true
