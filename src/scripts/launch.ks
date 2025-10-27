@@ -12,8 +12,8 @@ clearScreen.
 print "RUNNING launch".
 
 // define utility functions
-runoncepath("lib/terminal").
-runoncepath("lib/engine").
+runoncepath("0:/src/core/terminal").
+runoncepath("0:/src/core/engine").
 
 // countdown to launch
 print "Count down:".
@@ -90,7 +90,7 @@ sas on.
 
 // if it's possible to make nodes, create and execute a circularization node
 if career():canMakeNodes {
-    runoncepath("lib/node").
+    runoncepath("0:/src/core/node").
 
     // create circularization maneuver node
     local circNode is nodeChangePeriapsis(apoapsis).

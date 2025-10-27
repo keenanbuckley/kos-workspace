@@ -3,8 +3,8 @@
 print "RUNNING maneuver".
 
 // import libraries
-runOncePath("lib/engine").
-runOncePath("lib/burn").
+runOncePath("0:/src/core/engine").
+runOncePath("0:/src/core/burn").
 
 set nd to nextNode.
 

@@ -2,6 +2,6 @@
 
 parameter trueAnomaly. // True Anomaly in degrees
 
-runOncePath("0:/lib/orbit").
+runOncePath("0:/src/core/orbit").
 
 runPath("0:/test/setNodeAtMean", trueAnomalyToMeanAnomaly(trueAnomaly, orbit:eccentricity)).

@@ -8,7 +8,7 @@ parameter patchNum is 0.        // How many orbital patches from now to execute 
 parameter safety is true.       // Ensure orbits do not go above the body's SOI or below it's atmosphere
 
 // define utility functions
-runoncepath("lib/node").
+runoncepath("0:/src/core/node").
 
 local targetPatch is orbit.
 from {local i is 0.} until i = patchNum step {set i to i+1.} do {

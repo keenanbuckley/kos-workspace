@@ -4,7 +4,7 @@ parameter deltaAnomaly is 0.   // Mean Anomaly to shift by in degrees
 parameter apo is -1.            // final apoapsis (defaults to apoapsis of target patch)
 parameter peri is -1.           // final periapsis (defaults to target apoapsis)
 
-runOncePath("lib/orbit").
+runOncePath("0:/src/core/orbit").
 
 if apo = -1 { set apo to apoapsis. }
 

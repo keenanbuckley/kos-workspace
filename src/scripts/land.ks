@@ -3,7 +3,7 @@
 parameter target_height is 0.
 parameter target_velocity is 10.
 
-runOncePath("lib/engine").
+runOncePath("0:/src/core/engine").
 
 function accel {
     parameter t.
