@@ -41,3 +41,11 @@ function periEccToSemiMajor {
     if ecc = 1 { return 0. }
     return (peri + orbitBody:radius) / (1 - ecc).
 }
+
+function trueAnomalyToMeanAnomaly {
+    parameter trueAnomaly.
+    parameter ecc.
+
+    local eccAnomaly to arcTan2(sqrt(1 - ecc^2) * sin(trueAnomaly), ecc + cos(trueAnomaly)).
+    return eccAnomaly - ecc*sin(eccAnomaly).
+}
