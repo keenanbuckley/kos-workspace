@@ -1,3 +1,6 @@
 TabWidget/
 build/
 bin/
+__pycache__
+.venv
+boot/boot_*

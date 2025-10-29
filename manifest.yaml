@@ -1,38 +1,35 @@
 packages:
   standard_launch:
-    version: "0.0.0"
-    boot: src/boot/standard.ks
+    version: "0.0.1"
+    boot: 0:/src/boot/standard.ks
     offline_scripts:
-      - src/scripts/maneuver.ks
-      - src/scripts/transfer.ks
+      - 0:/src/scripts/maneuver.ks
+      - 0:/src/scripts/transfer.ks
     online_scripts:
-      - src/scripts/launch.ks
-      - src/pacman/install.ks
+      - 0:/src/scripts/launch.ks
+      - 0:/src/pacman/install.ks
     persistent_data: true
     compile: true
-    optimize_libs: true
 
   standard_orbit:
-    version: "0.0.0"
-    boot: src/boot/standard.ks
+    version: "0.0.1"
+    boot: 0:/src/boot/standard.ks
     offline_scripts:
-      - src/scripts/maneuver.ks
-      - src/scripts/transfer.ks
+      - 0:/src/scripts/maneuver.ks
+      - 0:/src/scripts/transfer.ks
     online_scripts:
-      - src/pacman/install.ks
+      - 0:/src/pacman/install.ks
     persistent_data: true
     compile: true
-    optimize_libs: true
 
   standard_lander:
-    version: "0.0.0"
-    boot: src/boot/standard.ks
+    version: "0.0.1"
+    boot: 0:/src/boot/standard.ks
     offline_scripts:
-      - src/scripts/maneuver.ks
-      - src/scripts/transfer.ks
+      - 0:/src/scripts/maneuver.ks
+      - 0:/src/scripts/transfer.ks
     online_scripts:
-      - src/scripts/land.ks
-      - src/pacman/install.ks
+      - 0:/src/scripts/land.ks
+      - 0:/src/pacman/install.ks
     persistent_data: true
     compile: true
-    optimize_libs: true
