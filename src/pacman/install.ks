@@ -1,7 +1,7 @@
 // install.ks
 @lazyGlobal off.
 
-parameter package is "".
+parameter package is "current".
 parameter packageVersion is "latest".
 parameter compile is "true".
 parameter force is false.
@@ -35,6 +35,15 @@ function main {
     if exists("state.json") {
         print "Loading persistent state...".
         set state to readJson("state.json").
+    }
+
+    if package = "current" {
+        if state:haskey("compile") {
+            set package to state["package"].
+        } else {
+            print "Must specify a package to install".
+            return.
+        }
     }
 
     // Package Check
