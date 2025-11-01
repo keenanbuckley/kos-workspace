@@ -1,3 +1,6 @@
+// icbm.ks attempts to fly and crash into a target waypoint
+@lazyGlobal off.
+
 // script parameters
 declare parameter targetName is "Valentina's Gift".
 declare parameter turnRate is 10.
@@ -10,7 +13,7 @@ print "RUNNING icbm".
 // only run if trajectories is available
 if addons:tr:available {
     // define utility functions
-    runoncepath("0:/src/core/terminal").
+    runoncepath("0:/src/display/terminal").
     runoncepath("0:/src/core/engine").
     runoncepath("0:/src/core/geo_nav").
 

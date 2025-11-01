@@ -1,4 +1,4 @@
-// geo_nav provides functions for navigating around a sphere using geocordinates
+// geo_nav.ks provides functions for navigating around a sphere using geocordinates
 @lazyGlobal off.
 
 function geo_angle {

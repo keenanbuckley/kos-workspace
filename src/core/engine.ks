@@ -1,4 +1,15 @@
-// engine
+// engine.ks provides functions for performing calculations about engines
+@lazyGlobal off.
+
+function staticFlameout {
+    list engines in myEngines.
+    for eng in myEngines {
+        if eng:throttlelock and eng:flameout {
+            return true.
+        }
+    }.
+    return false.
+}
 
 function throttleForThrust {
     parameter targetThrust.
@@ -17,7 +28,7 @@ function throttleForThrust {
         }
     }.
 
-    if staticFlameout {
+    if staticFlameout() {
         local adjThrottle is targetThrust / dynamicThrust.
         return min(max(minThrottle, adjThrottle), 1.0).
     }
@@ -27,16 +38,6 @@ function throttleForThrust {
     } else {
         return minThrottle.
     }    
-}
-
-function staticFlameout {
-    list engines in myEngines.
-    for eng in myEngines {
-        if eng:throttlelock and eng:flameout {
-            return true.
-        }
-    }.
-    return false.
 }
 
 function engineFlameout {

@@ -1,4 +1,5 @@
-// this script handles landing using engines
+// land.ks handles landing using engines
+@lazyGlobal off.
 
 parameter target_height is 0.
 parameter target_velocity is 10.

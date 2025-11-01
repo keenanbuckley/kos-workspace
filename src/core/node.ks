@@ -1,4 +1,5 @@
-// node
+// node.ks provides functions for performing calculations to plan maneuver nodes
+@lazyGlobal off.
 
 // vis viva equation to get the orbital speed at a specified altitude and orbit semimajoraxis.
 function visViva {

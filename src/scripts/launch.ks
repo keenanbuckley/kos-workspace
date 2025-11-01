@@ -1,4 +1,5 @@
-//launch
+// launch.ks
+@lazyGlobal off.
 
 // these defaults seem to work well when launching from KSC
 declare parameter finalAltitude is 80000.
@@ -12,7 +13,7 @@ clearScreen.
 print "RUNNING launch".
 
 // define utility functions
-runoncepath("0:/src/core/terminal").
+runoncepath("0:/src/display/terminal").
 runoncepath("0:/src/core/engine").
 
 // countdown to launch
@@ -102,7 +103,7 @@ if career():canMakeNodes {
         print "Executing circularization node in " + round(circNode:eta) + " seconds" at (0,16).
 
         // run execute next node script
-        run maneuver.
+        runPath("0:/src/scripts/maneuver").
     }
 // else just point sas at prograde
 } else {

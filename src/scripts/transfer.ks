@@ -1,4 +1,5 @@
-// this script creates the maneuver nodes to execute a Bi-elliptic transfer at the target patch
+// transfer.ks creates the maneuver nodes to execute a Bi-elliptic transfer at the target patch
+@lazyGlobal off.
 
 parameter apo is -1.            // final apoapsis (defaults to apoapsis of target patch)
 parameter peri is -1.           // final periapsis (defaults to target apoapsis)

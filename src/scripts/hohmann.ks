@@ -1,5 +1,6 @@
 // DEPRICATED/OLD CODE, use transfer.ks instead
-// this script creates the maneuver nodes to execute a Hohmann transfer at the current orbit
+// hohmann.ks creates the maneuver nodes to execute a Hohmann transfer at the current orbit
+@lazyGlobal off.
 
 declare parameter apo is -1. // change current apoapsis to
 declare parameter peri is -1. // change current periapsis to

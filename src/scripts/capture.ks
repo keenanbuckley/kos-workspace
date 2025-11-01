@@ -1,4 +1,5 @@
-// this script creates a maneuver node to capture around a body
+// capture.ks creates a maneuver node to capture around a body
+@lazyGlobal off.
 
 declare parameter opp is -1.
 declare parameter conj is -1.
@@ -27,5 +28,5 @@ if targetPatch:eccentricity >= 1 {
     }
 
     // create nodes
-    run transfer(opp, conj, -1, 0, patchNum).
+    runPath("0:/src/scripts/transfer", opp, conj, -1, 0, patchNum).
 }

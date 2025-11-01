@@ -1,4 +1,5 @@
-// script to set a blank node at a specific mean anomaly
+// set_node_at_mean.ks sets a blank node at a specific mean anomaly
+@lazyGlobal off.
 
 parameter meanAnomaly. // Mean Anomaly in degrees
 
@@ -21,5 +22,5 @@ if maneuverTimePeri < shipTimePeri {
 local maneuverEtaAbsolute to time:seconds + maneuverEtaRelative.
 
 // place maneuver node
-set myNode to node(maneuverEtaAbsolute, 0, 0, 0).
+local myNode to node(maneuverEtaAbsolute, 0, 0, 0).
 add myNode.

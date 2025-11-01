@@ -1,6 +1,7 @@
-// this script plans nodes to change the true anomaly angle between the current and target craft
+// target_angle.ks plans nodes to change the true anomaly angle between the current and target craft
 // currently the script assumes the current and target craft are already on similar circular orbits
 // this script can be used to plan a rendevous, or maintain a separation between the crafts
+@lazyGlobal off.
 
 parameter targetAngle is 0.
 
@@ -38,5 +39,5 @@ if hasTarget {
     print "Requested Delta Mean Anomoly: " + targetAngle.
     local lock angleError to (mod(180 + targetAngle-currAngle, 360) - 180).
     
-    run shift_by_anomaly(angleError, target:orbit:apoapsis, target:orbit:periapsis).
+    runPath("0:/src/scripts/shift_by_anomaly", angleError, target:orbit:apoapsis, target:orbit:periapsis).
 }

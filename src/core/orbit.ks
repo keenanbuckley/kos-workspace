@@ -1,3 +1,6 @@
+// orbit.ks provides functions for creating orbit objects and calculating orbital parameters
+@lazyGlobal off.
+
 function apoPeriToOrbit {
     parameter apo.
     parameter peri.

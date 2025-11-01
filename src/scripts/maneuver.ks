@@ -1,4 +1,5 @@
-// this script executes the next maneuver node
+// maneuver.ks executes the next maneuver node
+@lazyGlobal off.
 
 print "RUNNING maneuver".
 
@@ -6,7 +7,7 @@ print "RUNNING maneuver".
 runOncePath("0:/src/core/engine").
 runOncePath("0:/src/core/burn").
 
-set nd to nextNode.
+local nd is nextNode.
 
 // calculate estimate of burn duration
 local pressure is 0.
@@ -58,7 +59,7 @@ writeJson(rocket_state, "rocket_state.json").
 wait until nd:eta <= burnStart + 60.
 
 // turn to face the direction the rocket's velocity is changing in
-set dv0 to nd:deltaV.
+local dv0 is nd:deltaV.
 sas off.
 lock steering to dv0.
 

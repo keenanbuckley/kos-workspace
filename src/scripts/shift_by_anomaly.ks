@@ -1,4 +1,5 @@
-// this script creates the maneuver nodes to execute a Bi-elliptic transfer to shift by an anomaly in degrees
+// shift_by_anomaly.ks creates the maneuver nodes to execute a Bi-elliptic transfer to shift by an anomaly in degrees
+@lazyGlobal off.
 
 parameter deltaAnomaly is 0.   // Mean Anomaly to shift by in degrees
 parameter apo is -1.            // final apoapsis (defaults to apoapsis of target patch)
@@ -24,4 +25,4 @@ print "Single-Orbit Major Axis: " + singleOrbitMajorAxis.
 local singleOrbitApoapsis to singleOrbitMajorAxis - 2*body:radius - ship:periapsis.
 print "Single-Orbit Apoapsis: " + singleOrbitApoapsis.
 
-run transfer(apo, peri, singleOrbitApoapsis).
+runPath("0:/src/scripts/transfer", apo, peri, singleOrbitApoapsis).

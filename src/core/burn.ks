@@ -1,3 +1,6 @@
+// burn.ks provides functions for performing calculations about upcoming burns
+@lazyGlobal off.
+
 function exhaust_velocity {
     parameter isp.
     
