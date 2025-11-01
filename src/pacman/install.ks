@@ -2,8 +2,7 @@
 @lazyGlobal off.
 
 parameter package is "current".
-parameter packageVersion is "latest".
-parameter compile is "true".
+parameter compile is true.
 parameter force is false.
 parameter bootFilePath is "boot/default".
 
@@ -38,7 +37,7 @@ function main {
     }
 
     if package = "current" {
-        if state:haskey("compile") {
+        if state:haskey("package") {
             set package to state["package"].
         } else {
             print "Must specify a package to install".
@@ -52,6 +51,8 @@ function main {
         print "Package not found and/or missing. Skipping installation.".
         return.
     }
+    local packageState is lexicon().
+    set packageState to readJson(packagePath + "/state.json").
 
     // Notify if different package installed than target
     if state:haskey("package") and not(state["package"] = package) {
@@ -61,6 +62,20 @@ function main {
     // Notify if different compile option set than target
     if state:haskey("compile") and not(state["compile"] = compile) {
         print("Warning: Changing compile setting from " + state["compile"] + " to " + compile).
+    }
+
+    // Version check
+    print "Starting package installation...".
+    local newVer is packageState["version"].
+    if state:haskey("version") {
+        local oldVer is state["version"].
+        if oldVer = newVer {
+            print "Package already at version " + newVer + ".".
+        } else {
+            print "Updating from version " + oldVer + " to " + newVer + ".".
+        }
+    } else {
+        print "Fresh install (no previous version detected).".
     }
 
     // Check that user wants to install package
@@ -83,20 +98,9 @@ function main {
         }
     }
 
-    // Version check
-    print "Starting package installation...".
-    if state:haskey("version") {
-        local oldVer is state["version"].
-        if not(packageVersion = "latest") and oldVer = packageVersion {
-            print "Package already at version " + oldVer + ". Skipping installation.".
-            return.
-        } else {
-            print "Updating from version " + oldVer + " to " + packageVersion + ".".
-        }
-    } else {
-        print "Fresh install (no previous version detected).".
-    }
-    set state["version"] to packageVersion.
+    set state["package"] to package.
+    set state["version"] to newVer.
+    set state["compile"] to compile.
 
     // Delete existing files // TODO: Only delete code files
     runPath("0:/src/pacman/wipe").
@@ -152,7 +156,7 @@ function main {
     // Step 5: Save persistent state file
     writeJson(state, "state.json").
 
-    print "Installation complete (v:" + packageVersion + "). Reboot recommended.".
+    print "Installation complete (v:" + newVer + "). Reboot recommended.".
 }
 
 main().

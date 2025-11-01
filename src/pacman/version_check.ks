@@ -12,7 +12,7 @@ function main{
         return.
     }
 
-    local packageState is readJson(packagePath).
+    local packageState is readJson(packagePath + "/state.json").
     if packageState:haskey("version") {
         if not(packageVersion = packageState["version"]) {
             print "Package" + package + "has version " + packageState["version"] + "available on the archive (current " + packageVersion + ").".

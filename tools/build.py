@@ -23,7 +23,6 @@ It relies on external functions for dependency resolution:
 import os
 import shutil
 import yaml
-import json
 import re
 from pathlib import Path
 
@@ -213,6 +212,8 @@ def build_package(name: str, cfg: dict) -> None:
             if match:
                 # The capture group 2 is the parameter name
                 param_list += ", " + match.group(2)
+                if param_list[-1] == ".":
+                    param_list = param_list[:-1]
 
         # Online scripts are simple wrappers that call the original script path.
         script_content += f'runPath("{script_path_kos}"{param_list}).\n'
@@ -229,13 +230,33 @@ def build_package(name: str, cfg: dict) -> None:
 
     # --- 7. Add Persistent State (if required) ---
     if cfg.get("persistent_data"):
-        state = {
-            "package": name,
-            "version": cfg_version,
+        package_state_content = """
+{
+    "entries": [
+        {
+            "value": "package",
+            "$type": "kOS.Safe.Encapsulation.StringValue"
+        },
+        {
+            "value": "PACKAGE",
+            "$type": "kOS.Safe.Encapsulation.StringValue"
+        },
+        {
+            "value": "version",
+            "$type": "kOS.Safe.Encapsulation.StringValue"
+        },
+        {
+            "value": "VERSION",
+            "$type": "kOS.Safe.Encapsulation.StringValue"
         }
+    ],
+    "$type": "kOS.Safe.Encapsulation.Lexicon"
+}
+"""
+        package_state_content = package_state_content.replace("PACKAGE", name)
+        package_state_content = package_state_content.replace("VERSION", cfg_version)
         state_file = package_root / "state.json"
-        with open(state_file, "w", encoding="utf-8") as f:
-            json.dump(state, f, indent=4)
+        state_file.write_text(package_state_content)
 
         print(f"Wrote state file to: {state_file.relative_to(ARCHIVE)}")
 
@@ -249,7 +270,7 @@ def build_package(name: str, cfg: dict) -> None:
         f"// Auto-generated initial boot script for {name}\n"
         f'print "Booting installer for {name} (v{cfg_version})...".\n'
         # Arguments: package_name, version, compile_flag (lowercase string)
-        f'runpath("{INSTALLER.as_posix().replace(str(ARCHIVE.as_posix()), "0:")}", "{name}", "{cfg_version}", "{str(cfg_compile).lower()}").\n',
+        f'runpath("{INSTALLER.as_posix().replace(str(ARCHIVE.as_posix()), "0:")}", "{name}", {str(cfg_compile).lower()}, true).\n',
         encoding="utf-8",
     )
 
