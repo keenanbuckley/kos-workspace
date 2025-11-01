@@ -6,7 +6,7 @@ print "Waiting for ship to unpack.".
 wait until ship:unpacked.
 print "Ship is now unpacked.".
 
-// load rocket_state
+// load state
 local state is lexicon().
 set state to readJson("state.json").
 
@@ -20,8 +20,18 @@ if homeConnection:isconnected() and state:haskey("package") and state:haskey("ve
 if not state:hassuffix("execute_maneuver") {
     state:add("execute_maneuver", false).
 }
+writeJson(state, "state.json").
+
+if state:hassuffix("lock_steering") {
+    print "Locking steering to " + state["lock_steering"].
+    lock steering to body(state["lock_steering"]):direction.
+}
 
 // if execute_maneuver is true, jump into maneuver.ks
 if state["execute_maneuver"] = true {
     runPath("1:/maneuver").
 }
+
+// wait for user input to exit program
+print "Press any key to exit...".
+terminal:input:getchar().

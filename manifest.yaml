@@ -18,6 +18,7 @@ packages:
       - 0:/src/scripts/maneuver.ks
       - 0:/src/scripts/transfer.ks
     online_scripts:
+      - 0:/src/scripts/lock_steering.ks
       - 0:/src/pacman/install.ks
     persistent_data: true
     compile: true
