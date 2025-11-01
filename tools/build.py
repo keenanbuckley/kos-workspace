@@ -24,12 +24,14 @@ import os
 import shutil
 import yaml
 import json
+import re
 from pathlib import Path
 
 # Assuming these functions are available in a 'dependencies' module
 from dependencies import (
     refactor_script_for_cross_dependencies,
     collect_library_functions,
+    extract_kos_global_parameters,
 )
 
 # --- Configuration Constants (Derived from Script Location) ---
@@ -195,8 +197,25 @@ def build_package(name: str, cfg: dict) -> None:
 
     # --- 6. Generate Online Scripts (Simple Wrappers) ---
     for script_path_kos in cfg.get("online_scripts", []):
+        parameter_definitions = extract_kos_global_parameters(
+            (ARCHIVE / script_path_kos[3:]).read_text()
+        )
+
+        param_list = ""
+        script_content = ""
+        for param_def in parameter_definitions:
+            script_content += param_def + "\n"
+            match = re.search(
+                r"^\s*(declare\s+parameter|parameter)\s+([\w.]+)",
+                param_def,
+                re.IGNORECASE,
+            )
+            if match:
+                # The capture group 2 is the parameter name
+                param_list += ", " + match.group(2)
+
         # Online scripts are simple wrappers that call the original script path.
-        script_content = f'runPath("{script_path_kos}").'
+        script_content += f'runPath("{script_path_kos}"{param_list}).\n'
 
         # Get the stem (filename without extension) from the kOS path
         script_stem = Path(script_path_kos[3:]).stem

@@ -312,6 +312,66 @@ def collect_library_functions(
     return used_library_functions_code
 
 
+def extract_kos_global_parameters(script_content: str) -> List[str]:
+    """
+    Scans kOS script content for parameter definitions, excluding those that
+    are inside a function block (identified by curly braces).
+
+    Args:
+        script_content: The full content of the kOS script as a string.
+
+    Returns:
+        A list of strings, where each string is a global kOS parameter definition line.
+    """
+    # --- 1. Strip ALL comments ---
+
+    # a) Strip block comments (/* ... */)
+    # Uses non-greedy matching across newlines ([\s\S]*?)
+    script_content = re.sub(r"/\*[\s\S]*?\*/", "", script_content)
+
+    # b) Strip single-line comments (//)
+    # This function removes everything after // on a line.
+    def strip_sl_comments(line: str) -> str:
+        comment_index = line.find("//")
+        # If comment found, return content up to comment, stripped of trailing whitespace
+        return line[:comment_index].rstrip() if comment_index != -1 else line.rstrip()
+
+    # Apply the stripping function to every line
+    cleaned_lines = [strip_sl_comments(line) for line in script_content.splitlines()]
+
+    # Join back the cleaned lines (now without any comments)
+    content_for_parsing = "\n".join(cleaned_lines)
+
+    # --- 2. Collect list of parameter definitions in the global scope ---
+
+    parameter_definitions: List[str] = []
+    # Tracks the nesting level of curly braces.
+    # Level 0 means we are in the global script scope.
+    brace_count = 0
+
+    # Regex to identify parameter definition lines (global or local)
+    param_pattern = re.compile(r"^\s*(declare\s+parameter|parameter)\b", re.IGNORECASE)
+
+    for line in content_for_parsing.splitlines():
+        trimmed_line = line.strip()
+
+        # Update brace count
+        brace_count += trimmed_line.count("{")
+        brace_count -= trimmed_line.count("}")
+
+        # Ensure brace_count doesn't drop below zero due to mismatched braces
+        brace_count = max(0, brace_count)
+
+        # Check for parameter definition at the global scope
+        if brace_count == 0:
+            if param_pattern.match(trimmed_line):
+                # Add the whole trimmed line to the list
+                parameter_definitions.append(trimmed_line)
+
+    # Filter out empty strings that might result from logic
+    return parameter_definitions
+
+
 if __name__ == "__main__":
     archive_dir_path = "../"
     script_src = "0:/src/scripts/launch.ks"
