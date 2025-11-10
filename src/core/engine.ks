@@ -2,6 +2,7 @@
 @lazyGlobal off.
 
 function staticFlameout {
+    local myEngines is list().
     list engines in myEngines.
     for eng in myEngines {
         if eng:throttlelock and eng:flameout {
@@ -18,6 +19,7 @@ function throttleForThrust {
     local staticThrust is 0.
     local dynamicThrust is 0.
 
+    local myEngines is list().
     list engines in myEngines.
     for eng in myEngines {
         if eng:throttlelock {
@@ -41,6 +43,7 @@ function throttleForThrust {
 }
 
 function engineFlameout {
+    local myEngines is list().
     list engines in myEngines.
     for eng in myEngines {
         if eng:flameout {
@@ -51,6 +54,7 @@ function engineFlameout {
 }
 
 function available_mass_flow_rate {
+    local myEngines is list().
     list engines in myEngines.
     local flow_rate_sum is 0.
     for eng in myEngines {
@@ -64,6 +68,7 @@ function available_mass_flow_rate {
 function available_mass_flow_rate_at {
     parameter pressure.
 
+    local myEngines is list().
     list engines in myEngines.
     local flow_rate_sum is 0.
     for eng in myEngines {

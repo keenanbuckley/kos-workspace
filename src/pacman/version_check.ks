@@ -15,7 +15,8 @@ function main{
     local packageState is readJson(packagePath + "/state.json").
     if packageState:haskey("version") {
         if not(packageVersion = packageState["version"]) {
-            print "Package" + package + "has version " + packageState["version"] + "available on the archive (current " + packageVersion + ").".
+            print "Package " + package + " has version " + packageState["version"] + " available on the archive (current " + packageVersion + ").".
+            print "Run 'run install.' to install this update.".
         }
     }
 }

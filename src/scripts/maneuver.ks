@@ -37,7 +37,8 @@ print("Crude Estimate: " + round(nd:deltav:mag/(ship:availablethrust/ship:mass),
 print("Starting burn " + round(burnStart, 3) + " seconds before node ETA").
 
 // load rocket state
-local rocket_state is readJson("rocket_state.json").
+local rocket_state is lexicon().
+set rocket_state to readJson("state.json").
 
 // create key execute_maneuver if none exists
 if not rocket_state:hassuffix("execute_maneuver") {
@@ -53,7 +54,7 @@ if addons:available("KAC") and rocket_state["execute_maneuver"] = false {
 set rocket_state["execute_maneuver"] to true.
 
 // save rocket state now that we've changed it
-writeJson(rocket_state, "rocket_state.json").
+writeJson(rocket_state, "state.json").
 
 // wait until 60 seconds before burn
 wait until nd:eta <= burnStart + 60.
@@ -74,10 +75,10 @@ wait until nd:eta <= burnStart.
 
 // set execute_maneuver to false
 set rocket_state["execute_maneuver"] to false.
-writeJson(rocket_state, "rocket_state.json").
+writeJson(rocket_state, "state.json").
 
 // create a setpoint we can manipulate
-set throttleSetpoint to 0.
+local throttleSetpoint is 0.
 lock throttle to throttleSetpoint.
 
 // execute maneuver node
