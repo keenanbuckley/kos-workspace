@@ -1,15 +1,7 @@
 // node.ks provides functions for performing calculations to plan maneuver nodes
 @lazyGlobal off.
 
-// vis viva equation to get the orbital speed at a specified altitude and orbit semimajoraxis.
-function visViva {
-    declare parameter orbitingAltitude.
-    declare parameter semiMajorAxis.
-    declare parameter orbitingBody is body.
-
-    local velocitySquared is orbitingBody:mu * ((2/(orbitingAltitude+orbitingBody:radius)) - (1/semiMajorAxis)).
-    return sqrt(velocitySquared).
-}
+runOncePath("0:/src/core/orbit").
 
 // compute orbital speed at apoapsis using apoapis and periapsis
 function velocityApoapsis {
@@ -109,21 +101,22 @@ function nodeChangeApsis {
 
     // bound target apsis to range
     if not safety or (targetApsis < initialOrbit:body:soiradius and targetApsis > 0) {
-        print(trueAnomoly).
-        local orbitingAltitude is initialOrbit:semimajoraxis * (1 - initialOrbit:eccentricity^2) / (1 + initialOrbit:eccentricity*cos(trueAnomoly)).
-        print(orbitingAltitude).
-        local currVel is visViva(orbitingAltitude, initialOrbit:semimajoraxis, initialOrbit:body).
-        print(currVel).
-        local cfpa is min(cfpaVelocity(currVel, orbitingAltitude, initialOrbit:semimajoraxis, initialOrbit:eccentricity), 1).
-        local targetVel is velocityFlightPathAngle(cfpa, orbitingAltitude+initialOrbit:body:radius, targetApsis).
-        print(targetVel).
+        local orbitingAltitude is initialOrbit:semimajoraxis * (1 - initialOrbit:eccentricity^2) / (1 + initialOrbit:eccentricity*cos(trueAnomoly)) - initialOrbit:body:radius.
+        local targetEcc is apsesToEcc(orbitingAltitude, targetApsis, initialOrbit:body).
+        local targetTrueAnomoly is choose 0 if targetApsis > orbitingAltitude else 180.
 
-        local deltaV is targetVel - currVel.
-        local nodeEta is timeTrueAnomoly(trueAnomoly, initialOrbit:semimajoraxis, initialOrbit:eccentricity, initialOrbit:body) + initialOrbit:eta:periapsis.
+        local currSpeed is visViva(orbitingAltitude, initialOrbit:semimajoraxis, initialOrbit:body).
+        local targetSpeed is visViva(orbitingAltitude, apsesToSemiMajor(orbitingAltitude, targetApsis, initialOrbit:body), initialOrbit:body).
+
+        local currVel is prnToTrn(V(currSpeed,0,0), trueAnomoly, initialOrbit:eccentricity).
+        local targetVel is prnToTrn(V(targetSpeed,0,0), targetTrueAnomoly, targetEcc).
+
+        local deltaV is TrnToPrn(targetVel - currVel, targetTrueAnomoly, targetEcc).
+        local nodeEta is (initialOrbit:period / 360) * trueAnomalyToMeanAnomaly(trueAnomoly, initialOrbit:eccentricity) + initialOrbit:eta:periapsis.
         until nodeEta < initialOrbit:period {
             set nodeEta to nodeEta - initialOrbit:period.
         }
-        return node(nodeEta + time:seconds, 0, 0, deltaV).
+        return node(nodeEta + time:seconds, deltaV:y, deltaV:z, deltaV:x).
     }
     return -1.
 }
