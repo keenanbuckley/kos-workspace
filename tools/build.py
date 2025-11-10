@@ -31,6 +31,7 @@ from dependencies import (
     refactor_script_for_cross_dependencies,
     collect_library_functions,
     extract_kos_global_parameters,
+    get_all_dependencies_recursive,
 )
 
 # --- Configuration Constants (Derived from Script Location) ---
@@ -157,9 +158,14 @@ def build_package(name: str, cfg: dict) -> None:
             # to the set to be processed in future iterations.
             scripts_to_process.update(script_paths)
 
+            # Scan libraries for dependencies of dependencies
+            all_library_paths = set(library_paths)
+            for libary_path in library_paths:
+                all_library_paths = all_library_paths.union(get_all_dependencies_recursive(libary_path, ARCHIVE))
+
             # Collect unique library functions from the modified script content.
             library_functions = collect_library_functions(
-                modified_script, library_paths, ARCHIVE
+                modified_script, all_library_paths, ARCHIVE
             )
             # Merge collected functions into the master list of all library functions.
             full_library_functions.update(library_functions)

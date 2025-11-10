@@ -104,6 +104,79 @@ def refactor_script_for_cross_dependencies(
     return modified_script, library_paths, script_paths
 
 
+def get_script_dependencies(script_path: str, archive_dir_path: Path) -> Set[str]:
+    """
+    Recursively scans a kOS script and returns all dependency paths referenced by
+    RUNPATH and RUNONCEPATH statements (case-insensitive).
+
+    Args:
+        script_path: The kOS-style path to the script (e.g., "0:/src/core/node").
+        archive_dir_path: The root host path of the kOS archive (i.e., the base directory
+                          corresponding to "0:/").
+
+    Returns:
+        A set of all dependency paths (e.g., {"0:/src/core/orbit", "0:/src/utils/math"}).
+        Each path is returned exactly as written in the script.
+    """
+    # --- Normalize and resolve file path ---
+    if script_path.startswith("0:/"):
+        relative_path = Path(script_path[3:]).with_suffix(".ks")
+    else:
+        relative_path = Path(script_path).with_suffix(".ks")
+
+    absolute_path = archive_dir_path / relative_path
+
+    if not absolute_path.exists():
+        print(f"Warning: Script not found: {absolute_path}")
+        return set()
+
+    # --- Read the script content ---
+    try:
+        script_content = absolute_path.read_text(encoding="utf-8")
+    except Exception as e:
+        print(f"Error reading {absolute_path}: {e}")
+        return set()
+
+    # --- Regex for both RUNPATH and RUNONCEPATH ---
+    dependency_pattern = re.compile(
+        r"\b(runoncepath|runpath)\s*\(\s*(['\"])(.*?)\2", re.IGNORECASE
+    )
+
+    dependencies: Set[str] = set()
+
+    for match in dependency_pattern.finditer(script_content):
+        dep_path = match.group(3).strip()
+        if dep_path:
+            dependencies.add(dep_path)
+
+    return dependencies
+
+
+def get_all_dependencies_recursive(script_path: str, archive_dir_path: Path) -> Set[str]:
+    """
+    Recursively resolves all dependencies (RUNPATH + RUNONCEPATH) for a given kOS script.
+    """
+    visited = set()
+    to_visit = {script_path}
+
+    while to_visit:
+        current = to_visit.pop()
+        if current in visited:
+            continue
+
+        visited.add(current)
+        new_deps = get_script_dependencies(current, archive_dir_path)
+
+        # Add only unseen deps to the queue
+        for dep in new_deps:
+            if dep not in visited:
+                to_visit.add(dep)
+
+    # Remove the root script itself from the result
+    visited.discard(script_path)
+    return visited
+
+
 def scan_script_for_func_defs(script_content: str) -> Dict[str, str]:
     """
     Scans a kOS script string using a brace-counting parser to reliably extract
@@ -374,8 +447,8 @@ def extract_kos_global_parameters(script_content: str) -> List[str]:
 
 if __name__ == "__main__":
     archive_dir_path = "../"
-    script_src = "0:/src/scripts/launch.ks"
-    script_dst = "0:/build/test_package/offline_scripts/launch.ks"
+    script_src = "0:/src/scripts/transfer.ks"
+    script_dst = "0:/build/test_package/offline_scripts/transfer.ks"
     lib_name = "test_lib.ks"
     lib_dst = f"0:/build/test_package/lib/{lib_name}"
 
@@ -385,13 +458,17 @@ if __name__ == "__main__":
         refactor_script_for_cross_dependencies(script_content, lib_name)
     )
 
-    print(library_paths)
+    all_library_paths = set(library_paths)
+    for libary_path in library_paths:
+        all_library_paths = all_library_paths.union(get_all_dependencies_recursive(libary_path, archive_dir_path))
+
+    print(all_library_paths)
     print(script_paths)
     print(f'Wrote modified script to: "{(Path(archive_dir_path) / script_dst[3:])}"')
     (Path(archive_dir_path) / script_dst[3:]).write_text(modified_script)
 
     library_functions = collect_library_functions(
-        modified_script, library_paths, archive_dir_path
+        modified_script, all_library_paths, archive_dir_path
     )
     print(library_functions.keys())
 
