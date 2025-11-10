@@ -2,11 +2,13 @@
 @lazyGlobal off.
 
 // these defaults seem to work well when launching from KSC
-declare parameter finalAltitude is 80000.
-declare parameter compassHeading is 90.
-declare parameter turnRate is 12.
+parameter finalAltitude is 80000.
+parameter compassHeading is 90.
+parameter turnRate is 12.
 parameter targetTWR is 2.0.
 parameter initialSpeed is 100.
+parameter target_lan is -1. // Target longitude of ascending node.
+                            // Set to negative value to launch immediatly
 
 // clear screen to display only important information
 clearScreen.
@@ -15,6 +17,17 @@ print "RUNNING launch".
 // define utility functions
 runoncepath("0:/src/display/terminal").
 runoncepath("0:/src/core/engine").
+
+// timewarp to 3 seconds before launch
+if target_lan >= 0 {
+    local launchEta is (ship:body:rotationPeriod / 360.0) * (target_lan - ship:geoposition:lng - ship:body:rotationAngle).
+    until launchEta > 0 {
+        set launchEta to launchEta + ship:body:rotationPeriod.
+    }
+    print "Timewarping to " + time(time:seconds + launchEta - 3):full + "...".
+    kuniverse:timewarp:warpto(time:seconds + launchEta - 3).
+    wait launchEta - 3.
+}
 
 // countdown to launch
 print "Count down:".
@@ -42,9 +55,9 @@ lock weight to gravAcc * ship:mass.
 lock throttle to throttleForThrust(targetTWR * weight).
 
 sas on.
-set sasMode to "stability".
-set yaw to compassHeading.
-set pitch to 90.
+global sasMode to "stability".
+local yaw is compassHeading.
+local pitch is 90.
 
 when ship:velocity:surface:mag > initialSpeed then {
     sas off.
