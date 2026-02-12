@@ -7,8 +7,10 @@ specifically handling script refactoring, function extraction, and transitive
 dependency resolution across kOS library files.
 
 Key responsibilities:
-1. Rewriting kOS script paths to point to their final location within the built package.
-2. Robustly extracting function definitions from kOS scripts while ignoring comments.
+1. Rewriting kOS script paths to point to their final
+   location within the built package.
+2. Robustly extracting function definitions from kOS
+   scripts while ignoring comments.
 3. Performing a Breadth-First Search (BFS) to identify all necessary library
    functions (including those called indirectly) for a given script.
 """
@@ -19,16 +21,22 @@ from pathlib import Path
 
 
 def strip_comments(script_content: str) -> str:
-    """Strips all kOS comments (block /* */ and single-line //) from script content."""
+    """Strip all kOS comments (block and single-line)."""
     # Strip block comments (/* ... */)
     script_content = re.sub(r"/\*[\s\S]*?\*/", "", script_content)
 
     # Strip single-line comments (//)
     def strip_line_comment(line: str) -> str:
         comment_index = line.find("//")
-        return line[:comment_index].rstrip() if comment_index != -1 else line.rstrip()
+        return (
+            line[:comment_index].rstrip()
+            if comment_index != -1
+            else line.rstrip()
+        )
 
-    return "\n".join(strip_line_comment(line) for line in script_content.splitlines())
+    return "\n".join(
+        strip_line_comment(line) for line in script_content.splitlines()
+    )
 
 
 def refactor_script_for_cross_dependencies(
@@ -41,13 +49,16 @@ def refactor_script_for_cross_dependencies(
 
     Args:
         script_content: The kOS script string to refactor.
-        lib_name: The name assigned to the consolidated library file (e.g., 'system_lib').
+        lib_name: The name assigned to the consolidated
+            library file (e.g., 'system_lib').
 
     Returns:
         A tuple containing:
         1. modified_script_string: The script with normalized paths.
-        2. library_paths_set: The original source paths of all libraries (RUNONCEPATH calls).
-        3. script_paths_set: The original source paths of all scripts (RUNPATH calls).
+        2. library_paths_set: The original source paths
+           of all libraries (RUNONCEPATH calls).
+        3. script_paths_set: The original source paths
+           of all scripts (RUNPATH calls).
     """
     modified_script = script_content
     library_paths: Set[str] = set()
@@ -60,7 +71,8 @@ def refactor_script_for_cross_dependencies(
     # (2:open_quote): Captures ' or "
     # (3:path): Captures the original path (e.g., "0:/lib/utils.ks")
     # \2: Matches the closing quote captured by group 2
-    # (4:remaining_args): Captures any arguments following the path, including the comma.
+    # (4:remaining_args): Captures any arguments following
+    #   the path, including the comma.
     lib_pattern = re.compile(
         r"(runoncepath)\s*\(([\"'])(.*?)\2([^)]*)\)", re.IGNORECASE
     )
@@ -78,9 +90,11 @@ def refactor_script_for_cross_dependencies(
         if not original_path:
             return match.group(0)
         command = match.group(1)
-        # Group 4 contains everything after the path's closing quote (e.g., ", arg1, arg2")
+        # Group 4 contains everything after the path's
+        # closing quote (e.g., ", arg1, arg2")
         remaining_args = match.group(4).strip()
-        # New target path is always "1:/lib/{lib_name}" (package-relative)
+        # New target path is always "1:/lib/{lib_name}"
+        # (package-relative)
         return f'{command}("1:/lib/{lib_name}"{remaining_args})'
 
     modified_script = lib_pattern.sub(lib_replacer, modified_script)
@@ -98,7 +112,8 @@ def refactor_script_for_cross_dependencies(
         if original_path:
             script_paths.add(original_path)
 
-    # Define the replacement logic: Redirect RUNPATH calls to the new package-relative path.
+    # Define the replacement logic: Redirect RUNPATH
+    # calls to the new package-relative path.
     def run_path_replacer(match: re.Match) -> str:
         command = match.group(1)
         original_path = match.group(3).strip()  # e.g., "0:/src/core/node.ks"
@@ -114,8 +129,8 @@ def refactor_script_for_cross_dependencies(
         # Strip extension if present (e.g., 'script.ks' -> 'script')
         script_name = Path(base_name_with_ext).stem
 
-        # The replacement format is command("1:/<script_name>" + remaining_args)
-        # The script is assumed to be copied to the root of the '1:' drive.
+        # Format: command("1:/<script_name>" + remaining_args)
+        # Script is copied to the root of the '1:' drive.
         return f'{command}("1:/{script_name}"{remaining_args})'
 
     modified_script = run_path_pattern.sub(run_path_replacer, modified_script)
@@ -123,19 +138,24 @@ def refactor_script_for_cross_dependencies(
     return modified_script, library_paths, script_paths
 
 
-def get_script_dependencies(script_path: str, archive_dir_path: Path) -> Set[str]:
+def get_script_dependencies(
+    script_path: str, archive_dir_path: Path
+) -> Set[str]:
     """
-    Recursively scans a kOS script and returns all dependency paths referenced by
-    RUNPATH and RUNONCEPATH statements (case-insensitive).
+    Recursively scans a kOS script and returns all
+    dependency paths referenced by RUNPATH and
+    RUNONCEPATH statements (case-insensitive).
 
     Args:
-        script_path: The kOS-style path to the script (e.g., "0:/src/core/node").
-        archive_dir_path: The root host path of the kOS archive (i.e., the base directory
-                          corresponding to "0:/").
+        script_path: The kOS-style path to the script
+            (e.g., "0:/src/core/node").
+        archive_dir_path: The root host path of the kOS
+            archive (the base directory for "0:/").
 
     Returns:
-        A set of all dependency paths (e.g., {"0:/src/core/orbit", "0:/src/utils/math"}).
-        Each path is returned exactly as written in the script.
+        A set of all dependency paths (e.g.,
+        {"0:/src/core/orbit", "0:/src/utils/math"}).
+        Each path is returned as written in the script.
     """
     # --- Normalize and resolve file path ---
     if script_path.startswith("0:/"):
@@ -175,7 +195,8 @@ def get_all_dependencies_recursive(
     script_path: str, archive_dir_path: Path
 ) -> Set[str]:
     """
-    Recursively resolves all dependencies (RUNPATH + RUNONCEPATH) for a given kOS script.
+    Recursively resolves all dependencies
+    (RUNPATH + RUNONCEPATH) for a given kOS script.
     """
     visited = set()
     to_visit = {script_path}
@@ -224,11 +245,16 @@ def scan_script_for_func_defs(script_content: str) -> Dict[str, str]:
     pending_function_line = ""
 
     # Regex to check for the start of a function and capture the name
-    start_pattern = re.compile(r"^\s*function\s+(?P<name>\w+)\s*\{", re.IGNORECASE)
+    start_pattern = re.compile(
+        r"^\s*function\s+(?P<name>\w+)\s*\{", re.IGNORECASE
+    )
     # Pattern for function header without opening brace (next-line brace style)
-    header_pattern = re.compile(r"^\s*function\s+(?P<name>\w+)\s*$", re.IGNORECASE)
+    header_pattern = re.compile(
+        r"^\s*function\s+(?P<name>\w+)\s*$", re.IGNORECASE
+    )
 
-    # --- 3. Iterate and parse using the brace counter (simple state machine) ---
+    # --- 3. Iterate and parse using the brace counter
+    #        (simple state machine) ---
     for line in lines:
         line_stripped = line.strip()
         if not line_stripped:
@@ -241,7 +267,9 @@ def scan_script_for_func_defs(script_content: str) -> Dict[str, str]:
                 # Same-line brace — existing behavior
                 current_function_name = match.group("name")
                 current_function_lines.append(line)
-                brace_count = line_stripped.count("{") - line_stripped.count("}")
+                brace_count = line_stripped.count("{") - line_stripped.count(
+                    "}"
+                )
                 pending_function_name = ""
                 if brace_count == 0:
                     functions[current_function_name.upper()] = line.strip()
@@ -256,11 +284,17 @@ def scan_script_for_func_defs(script_content: str) -> Dict[str, str]:
                 current_function_name = pending_function_name
                 current_function_lines.append(pending_function_line)
                 current_function_lines.append(line)
-                brace_count = line_stripped.count("{") - line_stripped.count("}")
+                brace_count = line_stripped.count("{") - line_stripped.count(
+                    "}"
+                )
                 pending_function_name = ""
                 if brace_count == 0:
-                    full_function_string = "\n".join(current_function_lines).strip()
-                    functions[current_function_name.upper()] = full_function_string
+                    full_function_string = "\n".join(
+                        current_function_lines
+                    ).strip()
+                    functions[current_function_name.upper()] = (
+                        full_function_string
+                    )
                     current_function_lines = []
                     current_function_name = ""
                 else:
@@ -288,8 +322,11 @@ def scan_script_for_func_defs(script_content: str) -> Dict[str, str]:
             # Check for function end
             if brace_count == 0:
                 # Store the complete, clean function string
-                full_function_string = "\n".join(current_function_lines).strip()
-                # Store function name in uppercase for case-insensitive lookup later
+                full_function_string = "\n".join(
+                    current_function_lines
+                ).strip()
+                # Store function name in uppercase for
+                # case-insensitive lookup later
                 functions[current_function_name.upper()] = full_function_string
 
                 # Reset state for the next function
@@ -308,9 +345,11 @@ def find_potential_calls(content: str) -> Set[str]:
     Returns:
         A set of potential function names, all converted to uppercase.
     """
-    # Identifiers (\w+) followed by optional whitespace and an opening parenthesis \(
+    # Identifiers (\w+) followed by optional whitespace
+    # and an opening parenthesis \(
     call_pattern = re.compile(r"\b(\w+)\s*\(", re.IGNORECASE)
-    # kOS is case-insensitive, so we return all findings in uppercase for consistent lookup
+    # kOS is case-insensitive, so we return all findings
+    # in uppercase for consistent lookup
     return {call.upper() for call in call_pattern.findall(content)}
 
 
@@ -322,16 +361,19 @@ def collect_library_functions(
     """
     Scans the main script's dependencies against functions defined in external
     library files and returns the code for all used library functions,
-    including deep (transitive) dependencies, using a Breadth-First Search (BFS).
+    including deep (transitive) dependencies, using a
+    Breadth-First Search (BFS).
 
     Args:
         script_content: The main kOS script content.
         library_paths: A set of source file paths for necessary libraries.
-        archive_dir_path: The root Path of the project archive on the host machine.
+        archive_dir_path: The root Path of the project
+            archive on the host machine.
 
     Returns:
-        A dictionary where keys are the uppercase names of the used library functions
-        and values are their corresponding function code strings.
+        A dictionary where keys are the uppercase names
+        of the used library functions and values are
+        their corresponding function code strings.
     """
 
     # --- 1. Gather all functions from all necessary libraries ---
@@ -343,7 +385,8 @@ def collect_library_functions(
             # Strip "0:/" and ensure the .ks extension
             relative_path = Path(original_path[3:]).with_suffix(".ks")
         else:
-            # Assume it's already a relative path structure, ensure .ks extension
+            # Assume it's already a relative path,
+            # ensure .ks extension
             relative_path = Path(original_path).with_suffix(".ks")
 
         absolute_path = archive_dir_path / relative_path
@@ -354,12 +397,16 @@ def collect_library_functions(
                 # Store function names in uppercase for case-insensitive lookup
                 lib_funcs = {
                     k.upper(): v
-                    for k, v in scan_script_for_func_defs(lib_script_content).items()
+                    for k, v in scan_script_for_func_defs(
+                        lib_script_content
+                    ).items()
                 }
                 all_library_functions.update(lib_funcs)
             except Exception as e:
                 # Print warning if a dependency file cannot be read
-                print(f"Error reading or scanning library {absolute_path}: {e}")
+                print(
+                    f"Error reading or scanning library {absolute_path}: {e}"
+                )
         else:
             # Print warning if a dependency file is missing
             print(f"Warning: Library path not found: {absolute_path}")
@@ -378,7 +425,8 @@ def collect_library_functions(
 
     for call_name in potential_calls_in_main:
         # A library dependency is a function that is callable AND
-        # is provided by a library AND is NOT defined locally in the main script.
+        # is provided by a library AND is NOT defined
+        # locally in the main script.
         if (
             call_name in all_library_function_names
             and call_name not in main_script_function_names
@@ -390,7 +438,8 @@ def collect_library_functions(
     # Queue for BFS processing (start with direct dependencies)
     processing_queue: List[str] = list(functions_to_process)
 
-    # Track functions that are finalized to prevent re-processing and infinite loops
+    # Track functions that are finalized to prevent
+    # re-processing and infinite loops
     collected_functions: Set[str] = set(functions_to_process)
 
     # Final output storage: name -> code
@@ -409,15 +458,19 @@ def collect_library_functions(
 
         for sub_call_name in calls_in_func_body:
             # Check if:
-            # i) The sub-call is a function provided by one of the libraries, AND
-            # ii) We have not already collected or queued it (preventing cycles/duplicates).
-            # We don't need to check against main_script_function_names here, as
+            # i) The sub-call is a function provided
+            #    by one of the libraries, AND
+            # ii) We have not already collected or
+            #     queued it (no cycles/duplicates).
+            # We don't need to check against
+            # main_script_function_names here, as
             # those functions are external to the library collection.
             if (
                 sub_call_name in all_library_function_names
                 and sub_call_name not in collected_functions
             ):
-                # Found a new deep dependency! Add it to the queue and tracking set
+                # Found a new deep dependency! Add it
+                # to the queue and tracking set
                 collected_functions.add(sub_call_name)
                 processing_queue.append(sub_call_name)
 
@@ -434,7 +487,8 @@ def extract_kos_global_parameters(script_content: str) -> List[str]:
         script_content: The full content of the kOS script as a string.
 
     Returns:
-        A list of strings, where each string is a global kOS parameter definition line.
+        A list of strings, where each string is a global
+        kOS parameter definition line.
     """
     # --- 1. Strip ALL comments ---
     content_for_parsing = strip_comments(script_content)
@@ -447,7 +501,9 @@ def extract_kos_global_parameters(script_content: str) -> List[str]:
     brace_count = 0
 
     # Regex to identify parameter definition lines (global or local)
-    param_pattern = re.compile(r"^\s*(declare\s+parameter|parameter)\b", re.IGNORECASE)
+    param_pattern = re.compile(
+        r"^\s*(declare\s+parameter|parameter)\b", re.IGNORECASE
+    )
 
     for line in content_for_parsing.splitlines():
         trimmed_line = line.strip()
@@ -490,7 +546,8 @@ if __name__ == "__main__":
 
     print(all_library_paths)
     print(script_paths)
-    print(f'Wrote modified script to: "{(Path(archive_dir_path) / script_dst[3:])}"')
+    dst = Path(archive_dir_path) / script_dst[3:]
+    print(f'Wrote modified script to: "{dst}"')
     (Path(archive_dir_path) / script_dst[3:]).write_text(
         modified_script, encoding="utf-8"
     )
@@ -504,4 +561,6 @@ if __name__ == "__main__":
     for full_function_string in reversed(library_functions.values()):
         library_content += full_function_string + "\n\n"
     print(f'Wrote library to: "{(Path(archive_dir_path) / lib_dst[3:])}"')
-    (Path(archive_dir_path) / lib_dst[3:]).write_text(library_content, encoding="utf-8")
+    (Path(archive_dir_path) / lib_dst[3:]).write_text(
+        library_content, encoding="utf-8"
+    )

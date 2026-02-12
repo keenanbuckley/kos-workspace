@@ -2,7 +2,7 @@
 """
 Package Builder Script for kOS Archives
 
-This script is responsible for building self-contained kOS packages from source.
+This script builds self-contained kOS packages from source.
 It reads package configurations from a central 'manifest.yaml', manages
 directories, copies scripts, resolves cross-script dependencies (library
 functions), and generates final boot scripts for deployment.
@@ -36,7 +36,8 @@ from dependencies import (
 )
 
 # --- Configuration Constants (Derived from Script Location) ---
-# ARCHIVE: The root directory of the entire project archive (two levels up from this script)
+# ARCHIVE: The root directory of the entire project archive
+# (two levels up from this script)
 ARCHIVE = Path(__file__).resolve().parents[1]
 SRC = ARCHIVE / "src"
 BUILD = ARCHIVE / "build"
@@ -53,7 +54,8 @@ def load_manifest() -> dict:
     Loads and parses the package configurations from the manifest file.
 
     Returns:
-        dict: A dictionary containing all defined packages and their configurations.
+        dict: A dictionary containing all defined packages
+            and their configurations.
     """
     print(f"Loading manifest from: {MANIFEST.relative_to(ARCHIVE)}")
     with open(MANIFEST, "r", encoding="utf-8") as f:
@@ -80,7 +82,9 @@ def kos_to_archive_path(kos_path: str) -> Path:
     """Convert a kOS archive path like '0:/src/boot/standard.ks'
     to a host Path relative to ARCHIVE."""
     if not kos_path.startswith("0:/"):
-        raise ValueError(f"Expected kOS path starting with '0:/', got: '{kos_path}'")
+        raise ValueError(
+            f"Expected kOS path starting with '0:/', got: '{kos_path}'"
+        )
     return ARCHIVE / kos_path[3:]
 
 
@@ -140,22 +144,26 @@ def build_package(name: str, cfg: dict) -> None:
     # Dictionary to hold unique function strings extracted from all scripts
     full_library_functions = dict()
 
-    # Loop continues until all scripts, including newly discovered dependencies,
-    # have been processed.
+    # Loop continues until all scripts, including newly
+    # discovered dependencies, have been processed.
     while scripts_to_process - processed_scripts:
         # Iterate only over scripts not yet processed
         for script_path_kos in scripts_to_process - processed_scripts:
             source_script_path = kos_to_archive_path(script_path_kos)
             script_content = source_script_path.read_text(encoding="utf-8")
 
-            # Refactor the script to resolve internal calls (RUNPATH, RUNONCEPATH)
-            # The refactoring extracts library dependencies and modifies script calls.
+            # Refactor the script to resolve internal calls
+            # (RUNPATH, RUNONCEPATH). The refactoring extracts
+            # library deps and modifies script calls.
             modified_script, library_paths, script_paths = (
-                refactor_script_for_cross_dependencies(script_content, lib_name)
+                refactor_script_for_cross_dependencies(
+                    script_content, lib_name
+                )
             )
 
-            # Add any newly discovered script dependencies (from RUNPATH/RUNONCEPATH calls)
-            # to the set to be processed in future iterations.
+            # Add newly discovered script dependencies
+            # (from RUNPATH/RUNONCEPATH calls) to the set
+            # to be processed in future iterations.
             scripts_to_process.update(script_paths)
 
             # Scan libraries for dependencies of dependencies
@@ -165,16 +173,21 @@ def build_package(name: str, cfg: dict) -> None:
                     get_all_dependencies_recursive(libary_path, ARCHIVE)
                 )
 
-            # Collect unique library functions from the modified script content.
+            # Collect unique library functions from the
+            # modified script content.
             library_functions = collect_library_functions(
                 modified_script, all_library_paths, ARCHIVE
             )
-            # Merge collected functions into the master list of all library functions.
+            # Merge collected functions into the master
+            # list of all library functions.
             full_library_functions.update(library_functions)
 
-            # Define the destination path for the processed script
-            # (maintaining only the stem, and placing it in the offline directory)
-            script_dst = Path(offline_scripts_dir) / f"{source_script_path.stem}.ks"
+            # Define the destination path for the processed
+            # script (maintaining only the stem, placing it
+            # in the offline directory)
+            script_dst = (
+                Path(offline_scripts_dir) / f"{source_script_path.stem}.ks"
+            )
             script_dst.write_text(modified_script, encoding="utf-8")
 
             # Mark the current script as processed
@@ -184,12 +197,17 @@ def build_package(name: str, cfg: dict) -> None:
             print("libs found:", library_paths)
             print("scripts found:", script_paths)
             print("functions extracted:", set(library_functions.keys()))
-            print(f"Wrote offline script to: {script_dst.relative_to(ARCHIVE)}")
+            print(
+                f"Wrote offline script to: {script_dst.relative_to(ARCHIVE)}"
+            )
             print()
 
     # --- 5. Build Library File ---
-    # Create the library script content by combining all unique extracted functions.
-    library_content = f"// {lib_name} - Generated library script\n@lazyGlobal off.\n\n"
+    # Create the library script content by combining all
+    # unique extracted functions.
+    library_content = (
+        f"// {lib_name} - Generated library script\n@lazyGlobal off.\n\n"
+    )
 
     # kOS hoists function definitions, so definition order does not matter.
     for function_string in [
@@ -227,7 +245,8 @@ def build_package(name: str, cfg: dict) -> None:
                         break
                     param_list += ", " + pname
 
-        # Online scripts are simple wrappers that call the original script path.
+        # Online scripts are simple wrappers that call
+        # the original script path.
         script_content += f'runPath("{script_path_kos}"{param_list}).\n'
 
         # Get the stem (filename without extension) from the kOS path
@@ -237,7 +256,8 @@ def build_package(name: str, cfg: dict) -> None:
         script_dst.write_text(script_content, encoding="utf-8")
 
         print(f"--- {script_path_kos} ---")
-        print(f"Wrote online script wrapper to: {script_dst.relative_to(ARCHIVE)}")
+        rel = script_dst.relative_to(ARCHIVE)
+        print(f"Wrote online script wrapper to: {rel}")
         print()
 
     # --- 7. Add Persistent State (if required) ---
@@ -275,12 +295,16 @@ def build_package(name: str, cfg: dict) -> None:
     boot_name = cfg.get("boot_name", f"boot_{name}.ks")
     boot_file = BOOT / boot_name
 
-    # This boot script executes the main installer script with package parameters.
+    # This boot script executes the main installer
+    # script with package parameters.
+    installer_kos = INSTALLER.as_posix().replace(str(ARCHIVE.as_posix()), "0:")
+    compile_flag = str(cfg_compile).lower()
     boot_file.write_text(
-        f"// Auto-generated initial boot script for {name}\n"
-        f'print "Booting installer for {name} (v{cfg_version})...".\n'
-        # Arguments: package_name, version, compile_flag (lowercase string)
-        f'runpath("{INSTALLER.as_posix().replace(str(ARCHIVE.as_posix()), "0:")}", "{name}", {str(cfg_compile).lower()}, true).\n',
+        f"// Auto-generated boot script for {name}\n"
+        f'print "Booting installer for {name}'
+        f' (v{cfg_version})...".\n'
+        f'runpath("{installer_kos}"'
+        f', "{name}", {compile_flag}, true).\n',
         encoding="utf-8",
     )
 
