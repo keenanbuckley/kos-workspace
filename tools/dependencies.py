@@ -20,6 +20,22 @@ from typing import Dict, Set, Tuple, List
 from pathlib import Path
 
 
+def _mask_string_contents(line: str) -> str:
+    """Replace contents of string literals with spaces.
+
+    Preserves line length so index-based operations
+    (find, count) on the result map to the original.
+    """
+    result = list(line)
+    in_string = False
+    for i, ch in enumerate(result):
+        if ch == '"':
+            in_string = not in_string
+        elif in_string:
+            result[i] = " "
+    return "".join(result)
+
+
 def strip_comments(script_content: str) -> str:
     """Strip all kOS comments (block and single-line)."""
     # Strip block comments (/* ... */)
@@ -27,7 +43,7 @@ def strip_comments(script_content: str) -> str:
 
     # Strip single-line comments (//)
     def strip_line_comment(line: str) -> str:
-        comment_index = line.find("//")
+        comment_index = _mask_string_contents(line).find("//")
         return (
             line[:comment_index].rstrip()
             if comment_index != -1
@@ -259,6 +275,7 @@ def scan_script_for_func_defs(script_content: str) -> Dict[str, str]:
         line_stripped = line.strip()
         if not line_stripped:
             continue
+        masked = _mask_string_contents(line_stripped)
 
         # Check for function start
         if not is_in_function:
@@ -267,9 +284,7 @@ def scan_script_for_func_defs(script_content: str) -> Dict[str, str]:
                 # Same-line brace — existing behavior
                 current_function_name = match.group("name")
                 current_function_lines.append(line)
-                brace_count = line_stripped.count("{") - line_stripped.count(
-                    "}"
-                )
+                brace_count = masked.count("{") - masked.count("}")
                 pending_function_name = ""
                 if brace_count == 0:
                     functions[current_function_name.upper()] = line.strip()
@@ -284,9 +299,7 @@ def scan_script_for_func_defs(script_content: str) -> Dict[str, str]:
                 current_function_name = pending_function_name
                 current_function_lines.append(pending_function_line)
                 current_function_lines.append(line)
-                brace_count = line_stripped.count("{") - line_stripped.count(
-                    "}"
-                )
+                brace_count = masked.count("{") - masked.count("}")
                 pending_function_name = ""
                 if brace_count == 0:
                     full_function_string = "\n".join(
@@ -316,8 +329,8 @@ def scan_script_for_func_defs(script_content: str) -> Dict[str, str]:
             current_function_lines.append(line)
 
             # Update brace count
-            brace_count += line_stripped.count("{")
-            brace_count -= line_stripped.count("}")
+            brace_count += masked.count("{")
+            brace_count -= masked.count("}")
 
             # Check for function end
             if brace_count == 0:
@@ -507,10 +520,11 @@ def extract_kos_global_parameters(script_content: str) -> List[str]:
 
     for line in content_for_parsing.splitlines():
         trimmed_line = line.strip()
+        masked = _mask_string_contents(trimmed_line)
 
         # Update brace count
-        brace_count += trimmed_line.count("{")
-        brace_count -= trimmed_line.count("}")
+        brace_count += masked.count("{")
+        brace_count -= masked.count("}")
 
         # Ensure brace_count doesn't drop below zero due to mismatched braces
         brace_count = max(0, brace_count)
