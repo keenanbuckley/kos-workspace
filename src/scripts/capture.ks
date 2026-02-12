@@ -1,13 +1,13 @@
 // capture.ks creates a maneuver node to capture around a body
 @lazyGlobal off.
 
-declare parameter opp is -1.
-declare parameter conj is -1.
-declare parameter patchNum is 1.
+parameter opp is -1.
+parameter conj is -1.
+parameter patchNum is 1.
 
 // find target orbit
 local targetPatch is orbit.
-FROM {local i is 0.} UNTIL i = patchNum STEP {set i to i+1.} DO {
+from {local i is 0.} until i = patchNum step {set i to i+1.} do {
     if targetPatch:hasnextpatch {
         set targetPatch to targetPatch:nextpatch.
     }

@@ -22,5 +22,5 @@ function geoArclength {
     parameter radius.
 
     local A is sin((g1:lat-g2:lat)/2)^2 + cos(g1:lat)*cos(g2:lat)*sin((g1:lng-g2:lng)/2)^2.
-    return radius*constant():PI*arctan2(sqrt(A),sqrt(1-A))/90.
+    return radius*constant:pi*arctan2(sqrt(A),sqrt(1-A))/90.
 }

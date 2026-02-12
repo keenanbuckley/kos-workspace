@@ -1,4 +1,4 @@
-// launch.ks
+// launch.ks handles launching a vessel into orbit
 @lazyGlobal off.
 
 // these defaults seem to work well when launching from KSC
@@ -15,8 +15,8 @@ clearScreen.
 print "RUNNING launch".
 
 // define utility functions
-runoncepath("0:/src/display/terminal").
-runoncepath("0:/src/core/engine").
+runOncePath("0:/src/display/terminal").
+runOncePath("0:/src/core/engine").
 
 // timewarp to 3 seconds before launch
 if targetLan >= 0 {
@@ -79,7 +79,7 @@ until ship:apoapsis > finalAltitude {
 }
 
 // Cut throttle and coast until ship exits atmosphere
-clearline(15).
+clearLine(15).
 print "Reached apoapsis of " + round(ship:apoapsis) + " meters, cutting throttle" at (0,15).
 print "Cruising to " + round(ship:body:atm:height) + " meters" at (0,16).
 lock throttle to 0.
@@ -104,7 +104,7 @@ sas on.
 
 // if it's possible to make nodes, create and execute a circularization node
 if career():canMakeNodes {
-    runoncepath("0:/src/core/node").
+    runOncePath("0:/src/core/node").
 
     // create circularization maneuver node
     local circNode is nodeChangePeriapsis(apoapsis).

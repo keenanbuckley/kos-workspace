@@ -10,7 +10,7 @@ parameter patchNum is 0.      // how many orbital patches from now to execute ma
 parameter safety is true.     // prevent burns inside atmosphere or below surface
 
 // define utility functions
-runoncepath("0:/src/core/node").
+runOncePath("0:/src/core/node").
 
 // === SELECT TARGET PATCH ===
 local targetPatch is orbit.

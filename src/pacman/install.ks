@@ -1,4 +1,4 @@
-// install.ks
+// install.ks installs a package from the archive to the vessel
 @lazyGlobal off.
 
 parameter package is "current".
@@ -56,12 +56,12 @@ function main {
 
     // Notify if different package installed than target
     if state:haskey("package") and not(state["package"] = package) {
-        print("Warning: Replacing package " + state["package"] + " with " + package).
+        print "Warning: Replacing package " + state["package"] + " with " + package.
     }
 
     // Notify if different compile option set than target
     if state:haskey("compile") and not(state["compile"] = compile) {
-        print("Warning: Changing compile setting from " + state["compile"] + " to " + compile).
+        print "Warning: Changing compile setting from " + state["compile"] + " to " + compile.
     }
 
     // Version check
@@ -80,7 +80,7 @@ function main {
 
     // Check that user wants to install package
     if not force {
-        print("Do you want to install this package? (Y/n)").
+        print "Do you want to install this package? (Y/n)".
         local installConfirm is true.
         local ch is terminal:input:getchar().
         if not(ch = terminal:input:return) {

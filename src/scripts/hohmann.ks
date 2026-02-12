@@ -2,13 +2,13 @@
 // hohmann.ks creates the maneuver nodes to execute a Hohmann transfer at the current orbit
 @lazyGlobal off.
 
-declare parameter apo is -1. // change current apoapsis to
-declare parameter peri is -1. // change current periapsis to
-declare parameter patchNum is 0.
-declare parameter safety is true.
+parameter apo is -1. // change current apoapsis to
+parameter peri is -1. // change current periapsis to
+parameter patchNum is 0.
+parameter safety is true.
 
 // define utility functions
-runoncepath("0:/src/core/node").
+runOncePath("0:/src/core/node").
 
 local targetPatch is orbit.
 from {local i is 0.} until i = patchNum step {set i to i+1.} do {

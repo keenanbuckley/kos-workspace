@@ -4,23 +4,23 @@
 parameter meanAnomaly. // Mean Anomaly in degrees
 
 // calculate time difference between maneuver and periapsis
-local maneuverTimePeri to (meanAnomaly / 360) * orbit:period.
+local maneuverTimePeri is (meanAnomaly / 360) * orbit:period.
 
 // calculate time since craft last passed periapsis
-local shipTimePeri to orbit:period - eta:periapsis.
+local shipTimePeri is orbit:period - eta:periapsis.
 if eta:periapsis < 0 {
     set shipTimePeri to eta:periapsis.
 }
 
 // calculate time until maneuver node
-local maneuverEtaRelative to maneuverTimePeri - shipTimePeri.
+local maneuverEtaRelative is maneuverTimePeri - shipTimePeri.
 if maneuverTimePeri < shipTimePeri {
     set maneuverEtaRelative to eta:periapsis + maneuverTimePeri.
 }
 
 // calculate absolute time of maneuver node
-local maneuverEtaAbsolute to time:seconds + maneuverEtaRelative.
+local maneuverEtaAbsolute is time:seconds + maneuverEtaRelative.
 
 // place maneuver node
-local myNode to node(maneuverEtaAbsolute, 0, 0, 0).
+local myNode is node(maneuverEtaAbsolute, 0, 0, 0).
 add myNode.

@@ -23,7 +23,7 @@ local nextMass1 is rocketEquationFinalMass(ship:mass, nd:deltav:mag-1, effective
 local flowRate1 is nextMass1/effectiveExhaustVelocity.
 set burnDuration to burnDuration + burnTime(nextMass1, 0.9, effectiveExhaustVelocity, flowRate1).
 
-local nextMass2 to rocketEquationFinalMass(nextMass1, 0.9, effectiveExhaustVelocity).
+local nextMass2 is rocketEquationFinalMass(nextMass1, 0.9, effectiveExhaustVelocity).
 local flowRate2 is 0.1*flowRate1.
 set burnDuration to burnDuration + burnTime(nextMass2, 0.1, effectiveExhaustVelocity, flowRate2).
 
@@ -32,9 +32,9 @@ local burnStart is (flowRate/flowRateSum)*meanBurnTime(ship:mass, nd:deltav:mag-
 set burnStart to burnStart + (flowRate1/flowRateSum)*meanBurnTime(nextMass1, 0.9, effectiveExhaustVelocity, flowRate1).
 set burnStart to burnStart + (flowRate2/flowRateSum)*meanBurnTime(nextMass2, 0.1, effectiveExhaustVelocity, flowRate2).
 
-print("Estimated burn duration of " + round(burnDuration, 3) + " seconds").
-print("Crude Estimate: " + round(nd:deltav:mag/(ship:availablethrust/ship:mass), 3) + " seconds").
-print("Starting burn " + round(burnStart, 3) + " seconds before node ETA").
+print "Estimated burn duration of " + round(burnDuration, 3) + " seconds".
+print "Crude Estimate: " + round(nd:deltav:mag/(ship:availablethrust/ship:mass), 3) + " seconds".
+print "Starting burn " + round(burnStart, 3) + " seconds before node ETA".
 
 // load rocket state
 local rocketState is lexicon().

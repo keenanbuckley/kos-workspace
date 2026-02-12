@@ -2,9 +2,9 @@
 @lazyGlobal off.
 
 // script parameters
-declare parameter targetName is "Valentina's Gift".
-declare parameter turnRate is 10.
-declare parameter targetThres is 500.
+parameter targetName is "Valentina's Gift".
+parameter turnRate is 10.
+parameter targetThres is 500.
 
 // display only icbm information
 clearScreen.
@@ -13,9 +13,9 @@ print "RUNNING icbm".
 // only run if trajectories is available
 if addons:tr:available {
     // define utility functions
-    runoncepath("0:/src/display/terminal").
-    runoncepath("0:/src/core/engine").
-    runoncepath("0:/src/core/geo_nav").
+    runOncePath("0:/src/display/terminal").
+    runOncePath("0:/src/core/engine").
+    runOncePath("0:/src/core/geo_nav").
 
     // set target coordinates
     local targetWaypoint is waypoint(targetName).
@@ -84,5 +84,5 @@ if addons:tr:available {
     }
 
 } else {
-    print("Script requires the Trajectories mod to work").
+    print "Script requires the Trajectories mod to work".
 }

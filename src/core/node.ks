@@ -5,28 +5,28 @@ runOncePath("0:/src/core/orbit").
 
 // compute orbital speed at apoapsis using apoapis and periapsis
 function velocityApoapsis {
-    declare parameter targetApoapsis.
-    declare parameter targetPeriapsis.
-    declare parameter orbitingBody is body.
+    parameter targetApoapsis.
+    parameter targetPeriapsis.
+    parameter orbitingBody is body.
 
     return visViva(targetApoapsis, (targetApoapsis+targetPeriapsis+(2*orbitingBody:radius))/2, orbitingBody).   
 }
 
 // compute orbital speed at periapsis using apoapis and periapsis
 function velocityPeriapsis {
-    declare parameter targetApoapsis.
-    declare parameter targetPeriapsis.
-    declare parameter orbitingBody is body.
+    parameter targetApoapsis.
+    parameter targetPeriapsis.
+    parameter orbitingBody is body.
 
     return visViva(targetPeriapsis, (targetApoapsis+targetPeriapsis+(2*orbitingBody:radius))/2, orbitingBody).   
 }
 
 // get the velocity of a ship using cosign of the flight path angle, altitude, and an apsis
 function velocityFlightPathAngle {
-    declare parameter cfpa.   // flight path angle
-    declare parameter obtAlt. // orbiting altitude
-    declare parameter apsis.
-    declare parameter orbitingBody is body.
+    parameter cfpa.   // flight path angle
+    parameter obtAlt. // orbiting altitude
+    parameter apsis.
+    parameter orbitingBody is body.
 
     // print(apsis^2 / (obtAlt*(apsis + obtAlt*cfpa)*(apsis - obtAlt*cfpa))).
 
@@ -38,31 +38,31 @@ function velocityFlightPathAngle {
 
 // get the cosign of the flight path angle using velocity, altitude, semiMajorAxis, and eccentricity
 function cfpaVelocity {
-    declare parameter vel.
-    declare parameter obtAlt. // orbiting altitude
-    declare parameter semiMajorAxis.
-    declare parameter ecc.
-    declare parameter orbitingBody is body.
+    parameter vel.
+    parameter obtAlt. // orbiting altitude
+    parameter semiMajorAxis.
+    parameter ecc.
+    parameter orbitingBody is body.
 
     return sqrt(orbitingBody:mu * (1 - ecc^2) * semiMajorAxis) / (obtAlt*vel).
 }
 
-// returns the time past the periapsis of the true anomoly
-function timeTrueAnomoly {
-    declare parameter trueAnomoly.
-    declare parameter semiMajorAxis.
-    declare parameter ecc.
-    declare parameter orbitingBody is body.
+// returns the time past the periapsis of the true anomaly
+function timeTrueAnomaly {
+    parameter trueAnomaly.
+    parameter semiMajorAxis.
+    parameter ecc.
+    parameter orbitingBody is body.
 
-    local X is (sqrt(1 - ecc^2) * sin(trueAnomoly)) / (1 + ecc*cos(trueAnomoly)).
+    local X is (sqrt(1 - ecc^2) * sin(trueAnomaly)) / (1 + ecc*cos(trueAnomaly)).
     return sqrt(semiMajorAxis^3 / orbitingBody:mu) * (arcSin(X) - ecc*X).
 }
 
 // generate a node at apoapsis to change the height of the periapsis
 function nodeChangePeriapsis {
-    declare parameter targetPeriapsis.
-    declare parameter initialOrbit is orbit.
-    declare parameter safety is true.
+    parameter targetPeriapsis.
+    parameter initialOrbit is orbit.
+    parameter safety is true.
 
     // bound target to range
     // bound target apoapsis to range
@@ -77,9 +77,9 @@ function nodeChangePeriapsis {
 
 // generate a node at periapsis to change the height of the apoapsis
 function nodeChangeApoapsis {
-    declare parameter targetApoapsis.
-    declare parameter initialOrbit is orbit.
-    declare parameter safety is true.
+    parameter targetApoapsis.
+    parameter initialOrbit is orbit.
+    parameter safety is true.
 
     // As of now, this function can only generate nodes at the periapsis
     // also bound target apoapsis to range
@@ -92,27 +92,27 @@ function nodeChangeApoapsis {
     return -1.
 }
 
-// generate a node at target true anomoly to change the height of an apsis
+// generate a node at target true anomaly to change the height of an apsis
 function nodeChangeApsis {
-    declare parameter targetApsis.
-    declare parameter trueAnomoly.
-    declare parameter initialOrbit is orbit.
-    declare parameter safety is true.
+    parameter targetApsis.
+    parameter trueAnomaly.
+    parameter initialOrbit is orbit.
+    parameter safety is true.
 
     // bound target apsis to range
     if not safety or (targetApsis < initialOrbit:body:soiradius and targetApsis > 0) {
-        local orbitingAltitude is initialOrbit:semimajoraxis * (1 - initialOrbit:eccentricity^2) / (1 + initialOrbit:eccentricity*cos(trueAnomoly)) - initialOrbit:body:radius.
+        local orbitingAltitude is initialOrbit:semimajoraxis * (1 - initialOrbit:eccentricity^2) / (1 + initialOrbit:eccentricity*cos(trueAnomaly)) - initialOrbit:body:radius.
         local targetEcc is apsesToEcc(orbitingAltitude, targetApsis, initialOrbit:body).
-        local targetTrueAnomoly is choose 0 if targetApsis > orbitingAltitude else 180.
+        local targetTrueAnomaly is choose 0 if targetApsis > orbitingAltitude else 180.
 
         local currSpeed is visViva(orbitingAltitude, initialOrbit:semimajoraxis, initialOrbit:body).
         local targetSpeed is visViva(orbitingAltitude, apsesToSemiMajor(orbitingAltitude, targetApsis, initialOrbit:body), initialOrbit:body).
 
-        local currVel is prnToTrn(V(currSpeed,0,0), trueAnomoly, initialOrbit:eccentricity).
-        local targetVel is prnToTrn(V(targetSpeed,0,0), targetTrueAnomoly, targetEcc).
+        local currVel is prnToTrn(V(currSpeed,0,0), trueAnomaly, initialOrbit:eccentricity).
+        local targetVel is prnToTrn(V(targetSpeed,0,0), targetTrueAnomaly, targetEcc).
 
-        local deltaV is TrnToPrn(targetVel - currVel, targetTrueAnomoly, targetEcc).
-        local nodeEta is (initialOrbit:period / 360) * trueAnomalyToMeanAnomaly(trueAnomoly, initialOrbit:eccentricity) + initialOrbit:eta:periapsis.
+        local deltaV is TrnToPrn(targetVel - currVel, targetTrueAnomaly, targetEcc).
+        local nodeEta is (initialOrbit:period / 360) * trueAnomalyToMeanAnomaly(trueAnomaly, initialOrbit:eccentricity) + initialOrbit:eta:periapsis.
         until nodeEta < initialOrbit:period {
             set nodeEta to nodeEta - initialOrbit:period.
         }

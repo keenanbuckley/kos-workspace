@@ -6,8 +6,8 @@ function apoPeriToOrbit {
     parameter peri.
     parameter orbitBody is body.
 
-    local semiMajor to apsesToSemiMajor(apo, peri, orbitBody).
-    local ecc to semiMajorPeriToEcc(semiMajor, peri, orbitBody).
+    local semiMajor is apsesToSemiMajor(apo, peri, orbitBody).
+    local ecc is semiMajorPeriToEcc(semiMajor, peri, orbitBody).
     return createOrbit(0, ecc, semiMajor, 0, 0, 0, 0, orbitBody).
 }
 
@@ -16,7 +16,7 @@ function periEccToOrbit {
     parameter ecc.
     parameter orbitBody is body.
 
-    local semiMajor to periEccToSemiMajor(peri, ecc, orbitBody).
+    local semiMajor is periEccToSemiMajor(peri, ecc, orbitBody).
     return createOrbit(0, ecc, semiMajor, 0, 0, 0, 0, orbitBody).
 }
 
@@ -73,15 +73,15 @@ function trueAnomalyToMeanAnomaly {
     parameter trueAnomaly.
     parameter ecc.
 
-    local eccAnomaly to arcTan2(sqrt(1 - ecc^2) * sin(trueAnomaly), ecc + cos(trueAnomaly)).
+    local eccAnomaly is arcTan2(sqrt(1 - ecc^2) * sin(trueAnomaly), ecc + cos(trueAnomaly)).
     return eccAnomaly - ecc*sin(eccAnomaly).
 }
 
 // vis viva equation to get the orbital speed at a specified altitude and orbit semimajoraxis.
 function visViva {
-    declare parameter orbitingAltitude.
-    declare parameter semiMajorAxis.
-    declare parameter orbitingBody is body.
+    parameter orbitingAltitude.
+    parameter semiMajorAxis.
+    parameter orbitingBody is body.
 
     local velocitySquared is orbitingBody:mu * ((2/(orbitingAltitude+orbitingBody:radius)) - (1/semiMajorAxis)).
     return sqrt(velocitySquared).

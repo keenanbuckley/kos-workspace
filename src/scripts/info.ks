@@ -1,3 +1,6 @@
+// info.ks prints information about the ship and its environment
+@lazyGlobal off.
+
 runOncePath("0:/src/core/engine").
 
 print ship:availablethrust.

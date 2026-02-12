@@ -1,9 +1,9 @@
-// wipe.ks
+// wipe.ks deletes all files on the vessel drive
 @lazyGlobal off.
 
 print "Wiping drive...".
 
-print("Before:").
+print "Before:".
 list.
 
 local fileList is list().
@@ -12,5 +12,5 @@ for f in fileList {
     deletePath("1:/" + f).
 }
 
-print("After:").
+print "After:".
 list.

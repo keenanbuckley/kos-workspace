@@ -11,18 +11,18 @@ if apo = -1 { set apo to apoapsis. }
 
 if peri = -1 { set peri to periapsis. }
 
-local targetOrbit to apoPeriToOrbit(apo, peri, body).
+local targetOrbit is apoPeriToOrbit(apo, peri, body).
 
-print "Error in Mean Anomoly at Ownship Periapsis: " + deltaAnomaly.
-local deltaSeconds to (deltaAnomaly/360)*targetOrbit:period.
+print "Error in Mean Anomaly at Ownship Periapsis: " + deltaAnomaly.
+local deltaSeconds is (deltaAnomaly/360)*targetOrbit:period.
 print "Target Orbit Period: " + targetOrbit:period.
 print "Error in Seconds at Ownship Periapsis: " + deltaSeconds.
 
-local singleOrbitPeriod to ship:orbit:period + deltaSeconds.
+local singleOrbitPeriod is ship:orbit:period + deltaSeconds.
 print "Single-Orbit Period: " + singleOrbitPeriod.
-local singleOrbitMajorAxis to 2 * ((body:mu * singleOrbitPeriod^2)/(4 * constant:pi^2))^(1/3).
+local singleOrbitMajorAxis is 2 * ((body:mu * singleOrbitPeriod^2)/(4 * constant:pi^2))^(1/3).
 print "Single-Orbit Major Axis: " + singleOrbitMajorAxis.
-local singleOrbitApoapsis to singleOrbitMajorAxis - 2*body:radius - ship:periapsis.
+local singleOrbitApoapsis is singleOrbitMajorAxis - 2*body:radius - ship:periapsis.
 print "Single-Orbit Apoapsis: " + singleOrbitApoapsis.
 
 runPath("0:/src/scripts/transfer", apo, peri, singleOrbitApoapsis).
