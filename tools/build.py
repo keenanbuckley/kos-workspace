@@ -192,7 +192,9 @@ def build_package(name: str, cfg: dict) -> None:
     library_content = f"// {lib_name} - Generated library script\n@lazyGlobal off.\n\n"
 
     # kOS hoists function definitions, so definition order does not matter.
-    for function_string in full_library_functions.values():
+    for function_string in [
+        full_library_functions[k] for k in sorted(full_library_functions)
+    ]:
         library_content += function_string + "\n\n"
 
     lib_dst.write_text(library_content, encoding="utf-8")
