@@ -101,16 +101,9 @@ def build_package(name: str, cfg: dict) -> None:
     lib_dst = lib_dir / f"{lib_name}.ks"
 
     # --- 2. Initialize Build Folders ---
-    for path in [
-        package_root,
-        boot_dir,
-        lib_dir,
-        offline_scripts_dir,
-        online_scripts_dir,
-    ]:
-        # Clean up existing build folder for fresh build
-        if path.exists():
-            shutil.rmtree(path)
+    if package_root.exists():
+        shutil.rmtree(package_root)
+    for path in [boot_dir, lib_dir, offline_scripts_dir, online_scripts_dir]:
         path.mkdir(parents=True)
 
     # Load and define config variables
@@ -203,7 +196,7 @@ def build_package(name: str, cfg: dict) -> None:
     # --- 6. Generate Online Scripts (Simple Wrappers) ---
     for script_path_kos in cfg.get("online_scripts", []):
         parameter_definitions = extract_kos_global_parameters(
-            (ARCHIVE / script_path_kos[3:]).read_text()
+            (ARCHIVE / script_path_kos[3:]).read_text(encoding="utf-8")
         )
 
         param_list = ""
@@ -236,33 +229,31 @@ def build_package(name: str, cfg: dict) -> None:
 
     # --- 7. Add Persistent State (if required) ---
     if cfg.get("persistent_data"):
-        package_state_content = """
-{
+        package_state_content = f"""
+{{
     "entries": [
-        {
+        {{
             "value": "package",
             "$type": "kOS.Safe.Encapsulation.StringValue"
-        },
-        {
-            "value": "PACKAGE",
+        }},
+        {{
+            "value": "{name}",
             "$type": "kOS.Safe.Encapsulation.StringValue"
-        },
-        {
+        }},
+        {{
             "value": "version",
             "$type": "kOS.Safe.Encapsulation.StringValue"
-        },
-        {
-            "value": "VERSION",
+        }},
+        {{
+            "value": "{cfg_version}",
             "$type": "kOS.Safe.Encapsulation.StringValue"
-        }
+        }}
     ],
     "$type": "kOS.Safe.Encapsulation.Lexicon"
-}
+}}
 """
-        package_state_content = package_state_content.replace("PACKAGE", name)
-        package_state_content = package_state_content.replace("VERSION", cfg_version)
         state_file = package_root / "state.json"
-        state_file.write_text(package_state_content)
+        state_file.write_text(package_state_content, encoding="utf-8")
 
         print(f"Wrote state file to: {state_file.relative_to(ARCHIVE)}")
 

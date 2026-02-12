@@ -17,6 +17,17 @@ from typing import Dict, Set, Tuple, List
 from pathlib import Path
 
 
+def strip_comments(script_content: str) -> str:
+    """Strips all kOS comments (block /* */ and single-line //) from script content."""
+    # Strip block comments (/* ... */)
+    script_content = re.sub(r"/\*[\s\S]*?\*/", "", script_content)
+    # Strip single-line comments (//)
+    def strip_line_comment(line: str) -> str:
+        comment_index = line.find("//")
+        return line[:comment_index].rstrip() if comment_index != -1 else line.rstrip()
+    return "\n".join(strip_line_comment(line) for line in script_content.splitlines())
+
+
 def refactor_script_for_cross_dependencies(
     script_content: str, lib_name: str
 ) -> Tuple[str, Set[str], Set[str]]:
@@ -93,7 +104,7 @@ def refactor_script_for_cross_dependencies(
         base_name_with_ext = base_name_with_ext.split("/")[-1]
 
         # Strip extension if present (e.g., 'script.ks' -> 'script')
-        script_name = base_name_with_ext.split(".")[0]
+        script_name = Path(base_name_with_ext).stem
 
         # The replacement format is command("1:/<script_name>" + remaining_args)
         # The script is assumed to be copied to the root of the '1:' drive.
@@ -189,23 +200,7 @@ def scan_script_for_func_defs(script_content: str) -> Dict[str, str]:
     """
 
     # --- 1. Strip ALL comments ---
-
-    # a) Strip block comments (/* ... */)
-    # Uses non-greedy matching across newlines ([\s\S]*?)
-    script_content = re.sub(r"/\*[\s\S]*?\*/", "", script_content)
-
-    # b) Strip single-line comments (//)
-    # This function removes everything after // on a line.
-    def strip_sl_comments(line: str) -> str:
-        comment_index = line.find("//")
-        # If comment found, return content up to comment, stripped of trailing whitespace
-        return line[:comment_index].rstrip() if comment_index != -1 else line.rstrip()
-
-    # Apply the stripping function to every line
-    cleaned_lines = [strip_sl_comments(line) for line in script_content.splitlines()]
-
-    # Join back the cleaned lines (now without any comments)
-    content_for_parsing = "\n".join(cleaned_lines)
+    content_for_parsing = strip_comments(script_content)
 
     # --- 2. Initialize parser state ---
     functions: Dict[str, str] = {}
@@ -397,23 +392,7 @@ def extract_kos_global_parameters(script_content: str) -> List[str]:
         A list of strings, where each string is a global kOS parameter definition line.
     """
     # --- 1. Strip ALL comments ---
-
-    # a) Strip block comments (/* ... */)
-    # Uses non-greedy matching across newlines ([\s\S]*?)
-    script_content = re.sub(r"/\*[\s\S]*?\*/", "", script_content)
-
-    # b) Strip single-line comments (//)
-    # This function removes everything after // on a line.
-    def strip_sl_comments(line: str) -> str:
-        comment_index = line.find("//")
-        # If comment found, return content up to comment, stripped of trailing whitespace
-        return line[:comment_index].rstrip() if comment_index != -1 else line.rstrip()
-
-    # Apply the stripping function to every line
-    cleaned_lines = [strip_sl_comments(line) for line in script_content.splitlines()]
-
-    # Join back the cleaned lines (now without any comments)
-    content_for_parsing = "\n".join(cleaned_lines)
+    content_for_parsing = strip_comments(script_content)
 
     # --- 2. Collect list of parameter definitions in the global scope ---
 
@@ -446,13 +425,13 @@ def extract_kos_global_parameters(script_content: str) -> List[str]:
 
 
 if __name__ == "__main__":
-    archive_dir_path = "../"
+    archive_dir_path = Path("../")
     script_src = "0:/src/scripts/transfer.ks"
     script_dst = "0:/build/test_package/offline_scripts/transfer.ks"
     lib_name = "test_lib.ks"
     lib_dst = f"0:/build/test_package/lib/{lib_name}"
 
-    script_content = Path(".." + script_src[2:]).read_text()
+    script_content = Path(".." + script_src[2:]).read_text(encoding="utf-8")
 
     modified_script, library_paths, script_paths = (
         refactor_script_for_cross_dependencies(script_content, lib_name)
@@ -465,7 +444,7 @@ if __name__ == "__main__":
     print(all_library_paths)
     print(script_paths)
     print(f'Wrote modified script to: "{(Path(archive_dir_path) / script_dst[3:])}"')
-    (Path(archive_dir_path) / script_dst[3:]).write_text(modified_script)
+    (Path(archive_dir_path) / script_dst[3:]).write_text(modified_script, encoding="utf-8")
 
     library_functions = collect_library_functions(
         modified_script, all_library_paths, archive_dir_path
@@ -476,4 +455,4 @@ if __name__ == "__main__":
     for full_function_string in reversed(library_functions.values()):
         library_content += full_function_string + "\n\n"
     print(f'Wrote library to: "{(Path(archive_dir_path) / lib_dst[3:])}"')
-    (Path(archive_dir_path) / lib_dst[3:]).write_text(library_content)
+    (Path(archive_dir_path) / lib_dst[3:]).write_text(library_content, encoding="utf-8")
