@@ -20,6 +20,7 @@ It relies on external functions for dependency resolution:
 - refactor_script_for_cross_dependencies
 - collect_library_functions
 """
+
 import os
 import shutil
 import yaml
@@ -75,6 +76,16 @@ def copy_script(src: Path, dst: Path) -> None:
     dst.write_text(text, encoding="utf-8")
 
 
+def kos_to_archive_path(kos_path: str) -> Path:
+    """Convert a kOS archive path like '0:/src/boot/standard.ks'
+    to a host Path relative to ARCHIVE."""
+    if not kos_path.startswith("0:/"):
+        raise ValueError(
+            f"Expected kOS path starting with '0:/', got: '{kos_path}'"
+        )
+    return ARCHIVE / kos_path[3:]
+
+
 def build_package(name: str, cfg: dict) -> None:
     """
     Builds a single kOS package based on its manifest configuration.
@@ -114,9 +125,8 @@ def build_package(name: str, cfg: dict) -> None:
 
     # --- 3. Copy Main Boot Script ---
     # The cfg_boot_path is a kOS path (e.g., "0:/src/boot/myboot.ks").
-    cfg_boot_path: str = cfg.get("boot")
-    # [3:] strips "0:/" to get the relative archive path.
-    source_boot_path = ARCHIVE / cfg_boot_path[3:]
+    cfg_boot_path: str = cfg["boot"]
+    source_boot_path = kos_to_archive_path(cfg_boot_path)
     copy_script(source_boot_path, boot_dst)
 
     print(f"--- {cfg_boot_path} ---")
@@ -137,8 +147,7 @@ def build_package(name: str, cfg: dict) -> None:
     while scripts_to_process - processed_scripts:
         # Iterate only over scripts not yet processed
         for script_path_kos in scripts_to_process - processed_scripts:
-            # [3:] strips "0:/" to get the relative archive path.
-            source_script_path = ARCHIVE / script_path_kos[3:]
+            source_script_path = kos_to_archive_path(script_path_kos)
             script_content = source_script_path.read_text(encoding="utf-8")
 
             # Refactor the script to resolve internal calls (RUNPATH, RUNONCEPATH)
@@ -154,7 +163,9 @@ def build_package(name: str, cfg: dict) -> None:
             # Scan libraries for dependencies of dependencies
             all_library_paths = set(library_paths)
             for libary_path in library_paths:
-                all_library_paths = all_library_paths.union(get_all_dependencies_recursive(libary_path, ARCHIVE))
+                all_library_paths = all_library_paths.union(
+                    get_all_dependencies_recursive(libary_path, ARCHIVE)
+                )
 
             # Collect unique library functions from the modified script content.
             library_functions = collect_library_functions(
@@ -196,7 +207,7 @@ def build_package(name: str, cfg: dict) -> None:
     # --- 6. Generate Online Scripts (Simple Wrappers) ---
     for script_path_kos in cfg.get("online_scripts", []):
         parameter_definitions = extract_kos_global_parameters(
-            (ARCHIVE / script_path_kos[3:]).read_text(encoding="utf-8")
+            kos_to_archive_path(script_path_kos).read_text(encoding="utf-8")
         )
 
         param_list = ""
@@ -218,7 +229,7 @@ def build_package(name: str, cfg: dict) -> None:
         script_content += f'runPath("{script_path_kos}"{param_list}).\n'
 
         # Get the stem (filename without extension) from the kOS path
-        script_stem = Path(script_path_kos[3:]).stem
+        script_stem = kos_to_archive_path(script_path_kos).stem
         script_dst = Path(online_scripts_dir) / f"{script_stem}.ks"
 
         script_dst.write_text(script_content, encoding="utf-8")
