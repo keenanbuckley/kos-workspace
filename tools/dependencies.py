@@ -12,6 +12,7 @@ Key responsibilities:
 3. Performing a Breadth-First Search (BFS) to identify all necessary library
    functions (including those called indirectly) for a given script.
 """
+
 import re
 from typing import Dict, Set, Tuple, List
 from pathlib import Path
@@ -21,10 +22,12 @@ def strip_comments(script_content: str) -> str:
     """Strips all kOS comments (block /* */ and single-line //) from script content."""
     # Strip block comments (/* ... */)
     script_content = re.sub(r"/\*[\s\S]*?\*/", "", script_content)
+
     # Strip single-line comments (//)
     def strip_line_comment(line: str) -> str:
         comment_index = line.find("//")
         return line[:comment_index].rstrip() if comment_index != -1 else line.rstrip()
+
     return "\n".join(strip_line_comment(line) for line in script_content.splitlines())
 
 
@@ -71,6 +74,9 @@ def refactor_script_for_cross_dependencies(
     # Define the replacement logic: Redirect all RUNONCEPATH calls to the new,
     # consolidated library file, preserving any arguments.
     def lib_replacer(match: re.Match) -> str:
+        original_path = match.group(3).strip()
+        if not original_path:
+            return match.group(0)
         command = match.group(1)
         # Group 4 contains everything after the path's closing quote (e.g., ", arg1, arg2")
         remaining_args = match.group(4).strip()
@@ -96,6 +102,8 @@ def refactor_script_for_cross_dependencies(
     def run_path_replacer(match: re.Match) -> str:
         command = match.group(1)
         original_path = match.group(3).strip()  # e.g., "0:/src/core/node.ks"
+        if not original_path:
+            return match.group(0)
         remaining_args = match.group(4).strip()
 
         # Extract the base script name: component after the last separator
@@ -163,7 +171,9 @@ def get_script_dependencies(script_path: str, archive_dir_path: Path) -> Set[str
     return dependencies
 
 
-def get_all_dependencies_recursive(script_path: str, archive_dir_path: Path) -> Set[str]:
+def get_all_dependencies_recursive(
+    script_path: str, archive_dir_path: Path
+) -> Set[str]:
     """
     Recursively resolves all dependencies (RUNPATH + RUNONCEPATH) for a given kOS script.
     """
@@ -210,9 +220,13 @@ def scan_script_for_func_defs(script_content: str) -> Dict[str, str]:
     brace_count = 0
     current_function_lines: List[str] = []
     current_function_name = ""
+    pending_function_name = ""
+    pending_function_line = ""
 
     # Regex to check for the start of a function and capture the name
     start_pattern = re.compile(r"^\s*function\s+(?P<name>\w+)\s*\{", re.IGNORECASE)
+    # Pattern for function header without opening brace (next-line brace style)
+    header_pattern = re.compile(r"^\s*function\s+(?P<name>\w+)\s*$", re.IGNORECASE)
 
     # --- 3. Iterate and parse using the brace counter (simple state machine) ---
     for line in lines:
@@ -224,13 +238,44 @@ def scan_script_for_func_defs(script_content: str) -> Dict[str, str]:
         if not is_in_function:
             match = start_pattern.match(line)
             if match:
-                is_in_function = True
+                # Same-line brace — existing behavior
                 current_function_name = match.group("name")
                 current_function_lines.append(line)
-
-                # Initialize brace count on the starting line (must be at least 1)
                 brace_count = line_stripped.count("{") - line_stripped.count("}")
+                pending_function_name = ""
+                if brace_count == 0:
+                    functions[current_function_name.upper()] = line.strip()
+                    current_function_lines = []
+                    current_function_name = ""
+                else:
+                    is_in_function = True
                 continue
+
+            # Opening brace for a pending next-line-brace function
+            if pending_function_name and line_stripped.startswith("{"):
+                current_function_name = pending_function_name
+                current_function_lines.append(pending_function_line)
+                current_function_lines.append(line)
+                brace_count = line_stripped.count("{") - line_stripped.count("}")
+                pending_function_name = ""
+                if brace_count == 0:
+                    full_function_string = "\n".join(current_function_lines).strip()
+                    functions[current_function_name.upper()] = full_function_string
+                    current_function_lines = []
+                    current_function_name = ""
+                else:
+                    is_in_function = True
+                continue
+
+            # Function header without opening brace — wait for next line
+            header_match = header_pattern.match(line)
+            if header_match:
+                pending_function_name = header_match.group("name")
+                pending_function_line = line
+                continue
+
+            # Non-matching line resets pending state
+            pending_function_name = ""
 
         # Process lines within a function
         if is_in_function:
@@ -439,12 +484,16 @@ if __name__ == "__main__":
 
     all_library_paths = set(library_paths)
     for libary_path in library_paths:
-        all_library_paths = all_library_paths.union(get_all_dependencies_recursive(libary_path, archive_dir_path))
+        all_library_paths = all_library_paths.union(
+            get_all_dependencies_recursive(libary_path, archive_dir_path)
+        )
 
     print(all_library_paths)
     print(script_paths)
     print(f'Wrote modified script to: "{(Path(archive_dir_path) / script_dst[3:])}"')
-    (Path(archive_dir_path) / script_dst[3:]).write_text(modified_script, encoding="utf-8")
+    (Path(archive_dir_path) / script_dst[3:]).write_text(
+        modified_script, encoding="utf-8"
+    )
 
     library_functions = collect_library_functions(
         modified_script, all_library_paths, archive_dir_path
