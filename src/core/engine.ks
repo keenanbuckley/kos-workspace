@@ -39,7 +39,7 @@ function throttleForThrust {
         return min(max(minThrottle, adjThrottle), 1.0).
     } else {
         return minThrottle.
-    }    
+    }
 }
 
 function engineFlameout {
@@ -53,26 +53,26 @@ function engineFlameout {
     return false.
 }
 
-function available_mass_flow_rate {
+function availableMassFlowRate {
     local myEngines is list().
     list engines in myEngines.
-    local flow_rate_sum is 0.
+    local flowRateSum is 0.
     for eng in myEngines {
         if eng:availableThrust > 0 {
-            set flow_rate_sum to flow_rate_sum + eng:maxMassFlow*eng:thrustLimit/100.
+            set flowRateSum to flowRateSum + eng:maxMassFlow*eng:thrustLimit/100.
         }
     }.
-    return flow_rate_sum.
+    return flowRateSum.
 }
 
-function available_mass_flow_rate_at {
+function availableMassFlowRateAt {
     parameter pressure.
 
     local myEngines is list().
     list engines in myEngines.
-    local flow_rate_sum is 0.
+    local flowRateSum is 0.
     for eng in myEngines {
-        set flow_rate_sum to flow_rate_sum + eng:availableThrustAt(pressure)/(eng:ispAt(pressure)*constant:g0).
+        set flowRateSum to flowRateSum + eng:availableThrustAt(pressure)/(eng:ispAt(pressure)*constant:g0).
     }.
-    return flow_rate_sum.
+    return flowRateSum.
 }

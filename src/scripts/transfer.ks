@@ -5,7 +5,7 @@
 parameter apo is -1.          // final apoapsis (defaults to targetPatch:apoapsis)
 parameter peri is -1.         // final periapsis (defaults to targetPatch:apoapsis)
 parameter rb is -1.           // intermediate apsis (defaults to Hohmann if -1)
-parameter burn_anomoly is 0.  // true anomaly for first burn
+parameter burnAnomaly is 0.  // true anomaly for first burn
 parameter patchNum is 0.      // how many orbital patches from now to execute maneuver
 parameter safety is true.     // prevent burns inside atmosphere or below surface
 
@@ -31,13 +31,13 @@ if rb = -1 or rb = apo {
 }
 
 // === SAFETY CHECKS ===
-if safety and burn_anomoly = 0 {
+if safety and burnAnomaly = 0 {
     if targetPatch:periapsis < 0 {
         print "Periapsis below surface, burn shifted to apoapsis.".
-        set burn_anomoly to 180.
+        set burnAnomaly to 180.
     } else if targetPatch:periapsis < targetPatch:body:atm:height and targetPatch:apoapsis > targetPatch:body:atm:height {
         print "Periapsis in atmosphere, burn shifted to apoapsis.".
-        set burn_anomoly to 180.
+        set burnAnomaly to 180.
     }
 }
 
@@ -46,12 +46,12 @@ local node1 is node(0,0,0,0).
 local node1Alt is 0.
 
 if hasNode {
-    set node1 to nodeChangeApsis(rb, burn_anomoly, allNodes[allNodes:length-1]:orbit, safety).
+    set node1 to nodeChangeApsis(rb, burnAnomaly, allNodes[allNodes:length-1]:orbit, safety).
     // compute radius at burn anomaly
-    set node1Alt to allNodes[allNodes:length-1]:orbit:semimajoraxis * (1 - allNodes[allNodes:length-1]:orbit:eccentricity^2) / (1 + allNodes[allNodes:length-1]:orbit:eccentricity * cos(burn_anomoly)).
+    set node1Alt to allNodes[allNodes:length-1]:orbit:semimajoraxis * (1 - allNodes[allNodes:length-1]:orbit:eccentricity^2) / (1 + allNodes[allNodes:length-1]:orbit:eccentricity * cos(burnAnomaly)).
 } else {
-    set node1 to nodeChangeApsis(rb, burn_anomoly, targetPatch, safety).
-    set node1Alt to targetPatch:semimajoraxis * (1 - targetPatch:eccentricity^2) / (1 + targetPatch:eccentricity * cos(burn_anomoly)).
+    set node1 to nodeChangeApsis(rb, burnAnomaly, targetPatch, safety).
+    set node1Alt to targetPatch:semimajoraxis * (1 - targetPatch:eccentricity^2) / (1 + targetPatch:eccentricity * cos(burnAnomaly)).
 }
 
 print "Adding first node...".
@@ -69,7 +69,7 @@ if hasNode {
         set node2 to nodeChangeApoapsis(peri, allNodes[allNodes:length-1]:orbit, safety).
     }
 } else {
-    set node2 to nodeChangeApsis(peri, burn_anomoly, targetPatch, safety).
+    set node2 to nodeChangeApsis(peri, burnAnomaly, targetPatch, safety).
 }
 print "Adding second node...".
 addNode(node2).

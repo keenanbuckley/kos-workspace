@@ -23,15 +23,15 @@ function velocityPeriapsis {
 
 // get the velocity of a ship using cosign of the flight path angle, altitude, and an apsis
 function velocityFlightPathAngle {
-    declare parameter cfpa. // flight path angle
-    declare parameter obt_alt.   // orbiting altitude
+    declare parameter cfpa.   // flight path angle
+    declare parameter obtAlt. // orbiting altitude
     declare parameter apsis.
     declare parameter orbitingBody is body.
 
-    // print(apsis^2 / (obt_alt*(apsis + obt_alt*cfpa)*(apsis - obt_alt*cfpa))).
+    // print(apsis^2 / (obtAlt*(apsis + obtAlt*cfpa)*(apsis - obtAlt*cfpa))).
 
-    if apsis < obt_alt*cfpa or apsis > obt_alt { // avoid undefined behavior
-        return sqrt((2*orbitingBody:mu*apsis*(apsis - obt_alt)) / (obt_alt*(apsis + obt_alt*cfpa)*(apsis - obt_alt*cfpa))).
+    if apsis < obtAlt*cfpa or apsis > obtAlt { // avoid undefined behavior
+        return sqrt((2*orbitingBody:mu*apsis*(apsis - obtAlt)) / (obtAlt*(apsis + obtAlt*cfpa)*(apsis - obtAlt*cfpa))).
     }
     return -1.
 }
@@ -39,12 +39,12 @@ function velocityFlightPathAngle {
 // get the cosign of the flight path angle using velocity, altitude, semiMajorAxis, and eccentricity
 function cfpaVelocity {
     declare parameter vel.
-    declare parameter obt_alt. // orbiting altitude
+    declare parameter obtAlt. // orbiting altitude
     declare parameter semiMajorAxis.
     declare parameter ecc.
     declare parameter orbitingBody is body.
 
-    return sqrt(orbitingBody:mu * (1 - ecc^2) * semiMajorAxis) / (obt_alt*vel).
+    return sqrt(orbitingBody:mu * (1 - ecc^2) * semiMajorAxis) / (obtAlt*vel).
 }
 
 // returns the time past the periapsis of the true anomoly

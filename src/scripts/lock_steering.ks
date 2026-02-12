@@ -3,7 +3,7 @@
 // ("unlock") to disable.
 @lazyGlobal off.
 
-parameter target_body is "unlock".
+parameter targetBody is "unlock".
 
 // load state
 local state is lexicon().
@@ -15,11 +15,11 @@ if state:hassuffix("lock_steering") {
     state:remove("lock_steering").
 }
 
-// set lock to direction of target_body
-if bodyExists(target_body) {
-    print "Locking steering to " + target_body.
-    lock steering to body(target_body):direction.
-    state:add("lock_steering", target_body).
+// set lock to direction of targetBody
+if bodyExists(targetBody) {
+    print "Locking steering to " + targetBody.
+    lock steering to body(targetBody):direction.
+    state:add("lock_steering", targetBody).
 }
 
 // save state

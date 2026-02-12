@@ -1,8 +1,8 @@
 // land.ks handles landing using engines
 @lazyGlobal off.
 
-parameter target_height is 0.
-parameter target_velocity is 10.
+parameter targetHeight is 0.
+parameter targetVelocity is 10.
 
 runOncePath("0:/src/core/engine").
 
@@ -41,7 +41,7 @@ function dist {
     return v0*t + 0.5*g*t^2 - (thrust/mfr^2)*(mfr*t + ln(1 - (mfr*t)/m0)*(m0 - mfr*t)).
 }
 
-function target_eta {
+function targetEta {
     parameter thrust.
     parameter mfr.
     parameter g.
@@ -52,7 +52,7 @@ function target_eta {
     if iter = 0 {
         return -v0/(g-(thrust/m0)).
     } else {
-        local t is target_eta(thrust, mfr, g, m0, v0, iter-1).
+        local t is targetEta(thrust, mfr, g, m0, v0, iter-1).
         return -vel(t, thrust, mfr, g, m0, v0)/accel(t, thrust, mfr, g, m0) - t.
     }
 }
@@ -64,34 +64,34 @@ sas off.
 lock steering to srfRetrograde.
 
 local lock thrust to ship:availableThrust*sin(arcTan2(-ship:verticalspeed, ship:groundspeed)).
-local mass_flow_rate is available_mass_flow_rate().
-local lock land_height to ship:geoposition:terrainheight.
+local massFlowRate is availableMassFlowRate().
+local lock landHeight to ship:geoposition:terrainheight.
 if addons:tr:available and addons:tr:hasImpact {
-    lock land_height to addons:tr:impactPos:terrainheight.
+    lock landHeight to addons:tr:impactPos:terrainheight.
 }
-local gravAcc is body:mu/((body:radius + land_height)^2).
+local gravAcc is body:mu/((body:radius + landHeight)^2).
 
-local t_eta is abs(target_eta(thrust, mass_flow_rate, gravAcc, ship:mass, -ship:verticalspeed)).
-local stopping_dist is dist(t_eta, thrust, mass_flow_rate, gravAcc, ship:mass, -ship:verticalspeed).
-until stopping_dist+target_height >= ship:altitude-land_height {
-    print "eta " + t_eta at(0, 20).
-    print "dst " + stopping_dist at(0, 21).
-    print "tgt " + (ship:altitude - (land_height+target_height)) at(0,22).
+local tEta is abs(targetEta(thrust, massFlowRate, gravAcc, ship:mass, -ship:verticalspeed)).
+local stoppingDist is dist(tEta, thrust, massFlowRate, gravAcc, ship:mass, -ship:verticalspeed).
+until stoppingDist+targetHeight >= ship:altitude-landHeight {
+    print "eta " + tEta at(0, 20).
+    print "dst " + stoppingDist at(0, 21).
+    print "tgt " + (ship:altitude - (landHeight+targetHeight)) at(0,22).
     print "vrt " + ship:verticalspeed at(0,23).
     print "hrz " + ship:groundspeed at(0,24).
     print "m0 " + ship:mass at(0,25).
     print "tst " + ship:availableThrust at(0,26).
-    print "mfr " + available_mass_flow_rate() at(0,27).
-    set t_eta to abs(target_eta(thrust, mass_flow_rate, gravAcc, ship:mass, -ship:verticalspeed)).
-    set stopping_dist to dist(t_eta, thrust, mass_flow_rate, gravAcc, ship:mass, -ship:verticalspeed).
+    print "mfr " + availableMassFlowRate() at(0,27).
+    set tEta to abs(targetEta(thrust, massFlowRate, gravAcc, ship:mass, -ship:verticalspeed)).
+    set stoppingDist to dist(tEta, thrust, massFlowRate, gravAcc, ship:mass, -ship:verticalspeed).
 }
 
 lock throttle to 1.
 
-wait until -ship:verticalspeed <= target_velocity.
+wait until -ship:verticalspeed <= targetVelocity.
 
 local lock weight to gravAcc * ship:mass.
-lock throttle to throttleForThrust(weight)*min(-ship:verticalspeed/target_velocity, 1).
+lock throttle to throttleForThrust(weight)*min(-ship:verticalspeed/targetVelocity, 1).
 
 wait until ship:verticalspeed >= -1.
 

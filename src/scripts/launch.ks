@@ -7,7 +7,7 @@ parameter compassHeading is 90.
 parameter turnRate is 12.
 parameter targetTWR is 2.0.
 parameter initialSpeed is 100.
-parameter target_lan is -1. // Target longitude of ascending node.
+parameter targetLan is -1. // Target longitude of ascending node.
                             // Set to negative value to launch immediatly
 
 // clear screen to display only important information
@@ -19,8 +19,8 @@ runoncepath("0:/src/display/terminal").
 runoncepath("0:/src/core/engine").
 
 // timewarp to 3 seconds before launch
-if target_lan >= 0 {
-    local launchEta is (ship:body:rotationPeriod / 360.0) * (target_lan - ship:geoposition:lng - ship:body:rotationAngle).
+if targetLan >= 0 {
+    local launchEta is (ship:body:rotationPeriod / 360.0) * (targetLan - ship:geoposition:lng - ship:body:rotationAngle).
     until launchEta > 0 {
         set launchEta to launchEta + ship:body:rotationPeriod.
     }

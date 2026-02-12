@@ -1,45 +1,45 @@
 // burn.ks provides functions for performing calculations about upcoming burns
 @lazyGlobal off.
 
-function exhaust_velocity {
+function exhaustVelocity {
     parameter isp.
-    
+
     return isp * constant:g0.
 }
 
-function rocket_equation_dv {
-    parameter start_mass.
-    parameter final_mass.
+function rocketEquationDv {
+    parameter startMass.
+    parameter finalMass.
     parameter ev.
 
     // return change in velocity
-    return ev * ln(start_mass/final_mass).
+    return ev * ln(startMass/finalMass).
 }
 
-function rocket_equation_final_mass {
-    parameter start_mass.
+function rocketEquationFinalMass {
+    parameter startMass.
     parameter dv.
     parameter ev.
 
     // return final mass after dv
-    return start_mass / (constant:e^(dv/ev)).
+    return startMass / (constant:e^(dv/ev)).
 }
 
-function burn_time {
-    parameter start_mass.
+function burnTime {
+    parameter startMass.
     parameter dv.
     parameter ev.
-    parameter flow_rate.
+    parameter flowRate.
 
-    local dm is start_mass - rocket_equation_final_mass(start_mass, dv, ev).
-    return dm / flow_rate.
+    local dm is startMass - rocketEquationFinalMass(startMass, dv, ev).
+    return dm / flowRate.
 }
 
-function mean_burn_time {
-    parameter start_mass.
+function meanBurnTime {
+    parameter startMass.
     parameter dv.
     parameter ev.
-    parameter flow_rate.
+    parameter flowRate.
 
-    return burn_time(start_mass, dv/2, ev, flow_rate).
+    return burnTime(startMass, dv/2, ev, flowRate).
 }
