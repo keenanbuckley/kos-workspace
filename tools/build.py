@@ -80,9 +80,7 @@ def kos_to_archive_path(kos_path: str) -> Path:
     """Convert a kOS archive path like '0:/src/boot/standard.ks'
     to a host Path relative to ARCHIVE."""
     if not kos_path.startswith("0:/"):
-        raise ValueError(
-            f"Expected kOS path starting with '0:/', got: '{kos_path}'"
-        )
+        raise ValueError(f"Expected kOS path starting with '0:/', got: '{kos_path}'")
     return ARCHIVE / kos_path[3:]
 
 
@@ -193,8 +191,8 @@ def build_package(name: str, cfg: dict) -> None:
     # Create the library script content by combining all unique extracted functions.
     library_content = f"// {lib_name} - Generated library script\n@lazyGlobal off.\n\n"
 
-    # Functions are reversed to ensure functions called by others are defined earlier.
-    for function_string in reversed(full_library_functions.values()):
+    # kOS hoists function definitions, so definition order does not matter.
+    for function_string in full_library_functions.values():
         library_content += function_string + "\n\n"
 
     lib_dst.write_text(library_content, encoding="utf-8")
@@ -214,16 +212,18 @@ def build_package(name: str, cfg: dict) -> None:
         script_content = ""
         for param_def in parameter_definitions:
             script_content += param_def + "\n"
-            match = re.search(
-                r"^\s*(declare\s+parameter|parameter)\s+([\w.]+)",
+            # Extract everything after the "parameter" keyword
+            param_match = re.match(
+                r"^\s*(?:declare\s+)?parameter\s+(.+)",
                 param_def,
                 re.IGNORECASE,
             )
-            if match:
-                # The capture group 2 is the parameter name
-                param_list += ", " + match.group(2)
-                if param_list[-1] == ".":
-                    param_list = param_list[:-1]
+            if param_match:
+                # Find all parameter names, stopping at "is" keyword
+                for pname in re.findall(r"\b(\w+)\b", param_match.group(1)):
+                    if pname.lower() == "is":
+                        break
+                    param_list += ", " + pname
 
         # Online scripts are simple wrappers that call the original script path.
         script_content += f'runPath("{script_path_kos}"{param_list}).\n'
