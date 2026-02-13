@@ -7,12 +7,9 @@ parameter targetAngle is 0.
 
 print "Ownship Orbital Period: " + ship:orbit:period.
 
-// print "Ownship True Anomaly: " + ship:orbit:trueanomaly.
-
 print "Ownship Epoch: " + ship:orbit:epoch.
 print "Ownship Mean Anomaly at Epoch: " + ship:orbit:meananomalyatepoch.
-//lock shipMeanAnomaly to ship:orbit:meananomalyatepoch + 360*(ship:orbit:eta:periapsis + time:seconds - ship:orbit:epoch)/ship:orbit:period.
-print "Ownship Mean Anomaly at Periapsis: " + 0. //shipMeanAnomaly.
+print "Ownship Mean Anomaly at Periapsis: " + 0.
 
 print "Target Argument of Periapsis: " + ship:orbit:argumentofperiapsis.
 print "Ownship Longitude of Ascending Node: " + ship:orbit:longitudeofascendingnode.
@@ -21,8 +18,6 @@ print "Ownship Combined Angle: " + shipCombinedAngle.
 
 if hasTarget {
     print "Target Orbital Period: " + target:orbit:period.
-
-    // print "Target True Anomaly: " + target:orbit:trueanomaly.
 
     print "Target Epoch: " + target:orbit:epoch.
     print "Target Mean Anomaly at Epoch: " + target:orbit:meananomalyatepoch.

@@ -50,8 +50,6 @@ if addons:tr:available {
 
             // run KP-loop to minimize heading error
             set headingError to geoAngle(ship:geoposition, addons:tr:impactPos, targetWaypoint:geoposition).
-            // if headingError > 180 {set headingError to headingError-360.}
-            // if headingError < -180 {set headingError to headingError+360.}
             if abs(headingError) < 10 {
                 set yaw to geoHeading(ship:geoposition, targetWaypoint:geoposition) + headingPid:update(time:seconds, headingError).
             }
@@ -67,13 +65,10 @@ if addons:tr:available {
 
     lock throttle to 0.
     lock steering to srfPrograde.
-    // set pid to pidLoop(0.01, 0, 0.006).
     until ship:altitude < 0 {
         set distError to geoArclength(addons:tr:impactPos, targetWaypoint:geoposition, ship:body:radius).
         set headingError to geoAngle(ship:geoposition, addons:tr:impactPos, targetWaypoint:geoposition).
 
-        // set yaw to srfPrograde:yaw.
-        // set pitch to max(srfPrograde:pitch, srfPrograde:pitch - pid:update(time:seconds, distError)).
 
         print "Target Heading: " + targetWaypoint:geoposition:heading at(0,15).
         print "Target Geo-Heading: " + geoHeading(ship:geoposition, targetWaypoint:geoposition) at(0,16).

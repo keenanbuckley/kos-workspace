@@ -1,6 +1,6 @@
 TabWidget/
+boot/
 build/
-bin/
 __pycache__
 .venv
-boot/boot_*
+*.ksm

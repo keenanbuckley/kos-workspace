@@ -109,6 +109,5 @@ unlock throttle.
 // returning to the throttle value it was before it was run
 set ship:control:pilotMainThrottle to 0.
 
-// unlock steering and turn on stability assist
-unlock steering.
+// turn on stability assist
 sas on.

@@ -14,7 +14,9 @@ from {local i is 0.} until i = patchNum step {set i to i+1.} do {
 }
 
 // this script only works if the targeted patch has a non elliptical trajectory
-if targetPatch:eccentricity >= 1 {
+if targetPatch:eccentricity < 1 {
+    print "Already in a bound orbit (ecc = " + round(targetPatch:eccentricity, 4) + ").".
+} else {
     print "found valid patch for body: " + targetPatch:body:name.
 
     // if opposition or conjuction altitude was not set, set to periapsis
