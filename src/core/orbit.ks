@@ -41,7 +41,7 @@ function semiMajorApoToEcc{
     parameter apo.
     parameter orbitBody is body.
 
-    return (apo + orbitBody:radius) / semiMajor.
+    return (apo + orbitBody:radius) / semiMajor - 1.
 }
 
 function apoPeriToEcc {
@@ -74,7 +74,7 @@ function trueAnomalyToMeanAnomaly {
     parameter ecc.
 
     local eccAnomaly is arcTan2(sqrt(1 - ecc^2) * sin(trueAnomaly), ecc + cos(trueAnomaly)).
-    return eccAnomaly - ecc*sin(eccAnomaly).
+    return eccAnomaly - constant:radtodeg*ecc*sin(eccAnomaly).
 }
 
 // vis viva equation to get the orbital speed at a specified altitude and orbit semimajoraxis.

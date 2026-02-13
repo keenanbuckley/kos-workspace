@@ -64,12 +64,12 @@ sas off.
 lock steering to srfRetrograde.
 
 local lock thrust to ship:availableThrust*sin(arcTan2(-ship:verticalspeed, ship:groundspeed)).
-local massFlowRate is availableMassFlowRate().
+local lock massFlowRate to availableMassFlowRate().
 local lock landHeight to ship:geoposition:terrainheight.
 if addons:tr:available and addons:tr:hasImpact {
     lock landHeight to addons:tr:impactPos:terrainheight.
 }
-local gravAcc is body:mu/((body:radius + landHeight)^2).
+local lock gravAcc to body:mu/((body:radius + landHeight)^2).
 
 local tEta is abs(targetEta(thrust, massFlowRate, gravAcc, ship:mass, -ship:verticalspeed)).
 local stoppingDist is dist(tEta, thrust, massFlowRate, gravAcc, ship:mass, -ship:verticalspeed).
@@ -95,6 +95,7 @@ lock throttle to throttleForThrust(weight)*min(-ship:verticalspeed/targetVelocit
 
 wait until ship:verticalspeed >= -1.
 
+unlock steering.
 unlock throttle.
 
 sas on.

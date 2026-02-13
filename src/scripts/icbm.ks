@@ -23,8 +23,8 @@ if addons:tr:available {
     // create steering controller
     local headingPid is pidLoop(2.0, 0.5, 0.2).
     local headingError is 0.
-    set yaw to geoHeading(ship:geoposition, targetWaypoint:geoposition).
-    set pitch to 90.
+    local yaw is geoHeading(ship:geoposition, targetWaypoint:geoposition).
+    local pitch is 90.
     lock steering to heading(yaw, pitch).
 
     // throttle up

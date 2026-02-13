@@ -55,7 +55,7 @@ function timeTrueAnomaly {
     parameter orbitingBody is body.
 
     local X is (sqrt(1 - ecc^2) * sin(trueAnomaly)) / (1 + ecc*cos(trueAnomaly)).
-    return sqrt(semiMajorAxis^3 / orbitingBody:mu) * (arcSin(X) - ecc*X).
+    return sqrt(semiMajorAxis^3 / orbitingBody:mu) * (constant:degtorad*arcSin(X) - ecc*X).
 }
 
 // generate a node at apoapsis to change the height of the periapsis
@@ -111,7 +111,7 @@ function nodeChangeApsis {
         local currVel is prnToTrn(V(currSpeed,0,0), trueAnomaly, initialOrbit:eccentricity).
         local targetVel is prnToTrn(V(targetSpeed,0,0), targetTrueAnomaly, targetEcc).
 
-        local deltaV is TrnToPrn(targetVel - currVel, targetTrueAnomaly, targetEcc).
+        local deltaV is TrnToPrn(targetVel - currVel, trueAnomaly, initialOrbit:eccentricity).
         local nodeEta is (initialOrbit:period / 360) * trueAnomalyToMeanAnomaly(trueAnomaly, initialOrbit:eccentricity) + initialOrbit:eta:periapsis.
         until nodeEta < initialOrbit:period {
             set nodeEta to nodeEta - initialOrbit:period.

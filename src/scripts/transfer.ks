@@ -47,14 +47,13 @@ local node1Alt is 0.
 
 if hasNode {
     set node1 to nodeChangeApsis(rb, burnAnomaly, allNodes[allNodes:length-1]:orbit, safety).
-    // compute radius at burn anomaly
-    set node1Alt to allNodes[allNodes:length-1]:orbit:semimajoraxis * (1 - allNodes[allNodes:length-1]:orbit:eccentricity^2) / (1 + allNodes[allNodes:length-1]:orbit:eccentricity * cos(burnAnomaly)).
+    // compute altitude at burn anomaly
+    set node1Alt to allNodes[allNodes:length-1]:orbit:semimajoraxis * (1 - allNodes[allNodes:length-1]:orbit:eccentricity^2) / (1 + allNodes[allNodes:length-1]:orbit:eccentricity * cos(burnAnomaly)) - allNodes[allNodes:length-1]:orbit:body:radius.
 } else {
     set node1 to nodeChangeApsis(rb, burnAnomaly, targetPatch, safety).
-    set node1Alt to targetPatch:semimajoraxis * (1 - targetPatch:eccentricity^2) / (1 + targetPatch:eccentricity * cos(burnAnomaly)).
+    set node1Alt to targetPatch:semimajoraxis * (1 - targetPatch:eccentricity^2) / (1 + targetPatch:eccentricity * cos(burnAnomaly)) - targetPatch:body:radius.
 }
 
-print "Adding first node...".
 addNode(node1).
 
 // === NODE 2: BURN TO FINAL PERIAPSIS ===
@@ -62,31 +61,22 @@ local node2 is node(0,0,0,0).
 if hasNode {
     // choose whether to adjust periapsis or apoapsis based on which is closer to node1Alt
     if abs(allNodes[allNodes:length-1]:orbit:periapsis - node1Alt) < abs(allNodes[allNodes:length-1]:orbit:apoapsis - node1Alt) {
-        // set node2 to nodeChangeApsis(peri, 0, allNodes[allNodes:length-1]:orbit, safety).
         set node2 to nodeChangePeriapsis(peri, allNodes[allNodes:length-1]:orbit, safety).
     } else {
-        // set node2 to nodeChangeApsis(peri, 180, allNodes[allNodes:length-1]:orbit, safety).
         set node2 to nodeChangeApoapsis(peri, allNodes[allNodes:length-1]:orbit, safety).
     }
 } else {
     set node2 to nodeChangeApsis(peri, burnAnomaly, targetPatch, safety).
 }
-print "Adding second node...".
+
 addNode(node2).
 
 // === NODE 3: ONLY FOR TRUE BI-ELLIPTIC (rb != apo) ===
-if not rb = apo {
+if rb <> apo {
     local node3 is node(0,0,0,0).
     if hasNode {
-        if rb > apo {
-            // set node3 to nodeChangeApsis(apo, 180, allNodes[allNodes:length-1]:orbit, safety).
-            set node3 to nodeChangeApoapsis(apo, allNodes[allNodes:length-1]:orbit, safety).
-        } else {
-            // set node3 to nodeChangeApsis(apo, 0, allNodes[allNodes:length-1]:orbit, safety).
-            set node3 to nodeChangePeriapsis(apo, allNodes[allNodes:length-1]:orbit, safety).
-        }
+        set node3 to nodeChangeApoapsis(apo, allNodes[allNodes:length-1]:orbit, safety).
     }
-    print "Adding third node (bi-elliptic)...".
     addNode(node3).
 } else {
     print "Hohmann transfer detected; skipping third node.".

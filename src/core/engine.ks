@@ -31,6 +31,7 @@ function throttleForThrust {
     }.
 
     if staticFlameout() {
+        if dynamicThrust = 0 { return minThrottle. }
         local adjThrottle is targetThrust / dynamicThrust.
         return min(max(minThrottle, adjThrottle), 1.0).
     }

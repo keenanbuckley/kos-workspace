@@ -8,7 +8,7 @@ function main{
     // Check if package exists
     local packagePath is "0:/build/" + package.
     if not exists(packagePath) {
-        print "Package " + package + "not found in archive.".
+        print "Package " + package + " not found in archive.".
         return.
     }
 

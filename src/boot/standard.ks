@@ -8,7 +8,9 @@ print "Ship is now unpacked.".
 
 // load state
 local state is lexicon().
-set state to readJson("state.json").
+if exists("state.json") {
+    set state to readJson("state.json").
+}
 
 // check package version against archive
 if homeConnection:isconnected() and state:haskey("package") and state:haskey("version") {
