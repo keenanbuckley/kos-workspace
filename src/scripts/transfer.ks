@@ -59,12 +59,9 @@ addNode(node1).
 // === NODE 2: BURN TO FINAL PERIAPSIS ===
 local node2 is node(0,0,0,0).
 if hasNode {
-    // choose whether to adjust periapsis or apoapsis based on which is closer to node1Alt
-    if abs(allNodes[allNodes:length-1]:orbit:periapsis - node1Alt) < abs(allNodes[allNodes:length-1]:orbit:apoapsis - node1Alt) {
-        set node2 to nodeChangePeriapsis(peri, allNodes[allNodes:length-1]:orbit, safety).
-    } else {
-        set node2 to nodeChangeApoapsis(peri, allNodes[allNodes:length-1]:orbit, safety).
-    }
+    // burn at the apsis opposite node1Alt to adjust the final periapsis
+    local burnTA is choose 180 if abs(allNodes[allNodes:length-1]:orbit:periapsis - node1Alt) < abs(allNodes[allNodes:length-1]:orbit:apoapsis - node1Alt) else 0.
+    set node2 to nodeChangeApsis(peri, burnTA, allNodes[allNodes:length-1]:orbit, safety).
 } else {
     set node2 to nodeChangeApsis(peri, burnAnomaly, targetPatch, safety).
 }
