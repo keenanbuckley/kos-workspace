@@ -113,8 +113,13 @@ function nodeChangeApsis {
 
         local deltaV is TrnToPrn(targetVel - currVel, trueAnomaly, initialOrbit:eccentricity).
         local nodeEta is (initialOrbit:period / 360) * trueAnomalyToMeanAnomaly(trueAnomaly, initialOrbit:eccentricity) + initialOrbit:eta:periapsis.
-        until nodeEta < initialOrbit:period {
-            set nodeEta to nodeEta - initialOrbit:period.
+        set nodeEta to mod(nodeEta, initialOrbit:period).
+        if nodeEta < 0 { set nodeEta to nodeEta + initialOrbit:period. }
+        if hasNode {
+            local prevNodeTime is allNodes[allNodes:length-1]:time.
+            until nodeEta + time:seconds > prevNodeTime {
+                set nodeEta to nodeEta + initialOrbit:period.
+            }
         }
         return node(nodeEta + time:seconds, deltaV:y, deltaV:z, deltaV:x).
     }
@@ -127,8 +132,12 @@ function addNode {
     parameter thres is 1e-3.
 
     if newNode:istype("Node") {
+        local prevCount is allNodes:length.
         add newNode.
-        if abs(allNodes[allNodes:length-1]:prograde) < thres {
+        wait 0.
+        if allNodes:length <= prevCount {
+            print "WARNING: node add failed (time may precede existing node)".
+        } else if abs(allNodes[allNodes:length-1]:prograde) < thres {
             remove newNode.
             print "node has low dv, removing".
         } else {
