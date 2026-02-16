@@ -1,6 +1,6 @@
 packages:
   standard:
-    version: "0.0.1"
+    version: "0.0.2"
     boot: 0:/src/boot/standard.ks
     offline_scripts:
       - 0:/src/scripts/maneuver.ks
@@ -9,6 +9,7 @@ packages:
       - 0:/src/scripts/launch.ks
       - 0:/src/scripts/lock_steering.ks
       - 0:/src/scripts/land.ks
+      - 0:/src/scripts/plane_change.ks
       - 0:/src/pacman/install.ks
     persistent_data: true
     compile: true
@@ -26,13 +27,14 @@ packages:
     compile: true
 
   standard_orbit:
-    version: "0.0.5"
+    version: "0.0.6"
     boot: 0:/src/boot/standard.ks
     offline_scripts:
       - 0:/src/scripts/maneuver.ks
       - 0:/src/scripts/transfer.ks
     online_scripts:
       - 0:/src/scripts/lock_steering.ks
+      - 0:/src/scripts/plane_change.ks
       - 0:/src/pacman/install.ks
     persistent_data: true
     compile: true

@@ -69,12 +69,35 @@ function periEccToSemiMajor {
     return (peri + orbitBody:radius) / (1 - ecc).
 }
 
+// altitude above body surface at a given true anomaly
+function altitudeAtTrueAnomaly {
+    parameter trueAnomaly.
+    parameter initialOrbit is orbit.
+
+    return initialOrbit:semimajoraxis * (1 - initialOrbit:eccentricity^2)
+        / (1 + initialOrbit:eccentricity * cos(trueAnomaly))
+        - initialOrbit:body:radius.
+}
+
 function trueAnomalyToMeanAnomaly {
     parameter trueAnomaly.
     parameter ecc.
 
     local eccAnomaly is arcTan2(sqrt(1 - ecc^2) * sin(trueAnomaly), ecc + cos(trueAnomaly)).
     return eccAnomaly - constant:radtodeg*ecc*sin(eccAnomaly).
+}
+
+// time from now until the vessel reaches a given true anomaly
+function etaToTrueAnomaly {
+    parameter trueAnomaly.
+    parameter initialOrbit is orbit.
+
+    local result is (initialOrbit:period / 360)
+        * trueAnomalyToMeanAnomaly(trueAnomaly, initialOrbit:eccentricity)
+        + initialOrbit:eta:periapsis.
+    set result to mod(result, initialOrbit:period).
+    if result < 0 { set result to result + initialOrbit:period. }
+    return result.
 }
 
 // vis viva equation to get the orbital speed at a specified altitude and orbit semimajoraxis.
@@ -93,6 +116,14 @@ function tanFpa {
     parameter ecc.
 
     return ecc * sin(trueAnomaly) / (1 + ecc * cos(trueAnomaly)).
+}
+
+// orbital angular momentum direction (plane normal)
+function orbitNormal {
+    parameter pos.
+    parameter vel.
+
+    return vcrs(pos, vel):normalized.
 }
 
 // converts from [prograde, radial, normal] space to [tangent, radial, normal] space

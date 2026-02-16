@@ -101,7 +101,7 @@ function nodeChangeApsis {
 
     // bound target apsis to range
     if not safety or (targetApsis < initialOrbit:body:soiradius and targetApsis > 0) {
-        local orbitingAltitude is initialOrbit:semimajoraxis * (1 - initialOrbit:eccentricity^2) / (1 + initialOrbit:eccentricity*cos(trueAnomaly)) - initialOrbit:body:radius.
+        local orbitingAltitude is altitudeAtTrueAnomaly(trueAnomaly, initialOrbit).
         local targetEcc is apsesToEcc(orbitingAltitude, targetApsis, initialOrbit:body).
         local targetTrueAnomaly is choose 0 if targetApsis > orbitingAltitude else 180.
 
@@ -112,16 +112,9 @@ function nodeChangeApsis {
         local targetVel is prnToTrn(V(targetSpeed,0,0), targetTrueAnomaly, targetEcc).
 
         local deltaV is TrnToPrn(targetVel - currVel, trueAnomaly, initialOrbit:eccentricity).
-        local nodeEta is (initialOrbit:period / 360) * trueAnomalyToMeanAnomaly(trueAnomaly, initialOrbit:eccentricity) + initialOrbit:eta:periapsis.
-        set nodeEta to mod(nodeEta, initialOrbit:period).
-        if nodeEta < 0 { set nodeEta to nodeEta + initialOrbit:period. }
-        if hasNode {
-            local prevNodeTime is allNodes[allNodes:length-1]:time.
-            until nodeEta + time:seconds > prevNodeTime {
-                set nodeEta to nodeEta + initialOrbit:period.
-            }
-        }
-        return node(nodeEta + time:seconds, deltaV:y, deltaV:z, deltaV:x).
+        local nodeEta is etaToTrueAnomaly(trueAnomaly, initialOrbit).
+        local nodeTime is scheduleAfterNodes(nodeEta + time:seconds, initialOrbit:period).
+        return node(nodeTime, deltaV:y, deltaV:z, deltaV:x).
     }
     return -1.
 }
@@ -145,13 +138,92 @@ function nodeEscape {
     local vBurn is sqrt(vSOI^2 + 2 * initialOrbit:body:mu * (1/burnR - 1/soiR)).
     local dv is vBurn - vCurrent.
 
-    local nodeTime is initialOrbit:eta:periapsis + time:seconds.
+    local nodeTime is scheduleAfterNodes(initialOrbit:eta:periapsis + time:seconds, initialOrbit:period).
+    return node(nodeTime, 0, 0, dv).
+}
+
+// generate a node to match the orbital plane of a target orbit
+function nodeChangePlane {
+    parameter targetOrbit.
+    parameter initialOrbit is orbit.
+
+    if initialOrbit:eccentricity >= 1 { return -1. }
+    if initialOrbit:body <> targetOrbit:body { return -1. }
+
+    // vessel orbital normal
+    local vesPos is -body:position.
+    local orbNormal is orbitNormal(vesPos, velocity:orbit).
+
+    // target orbital normal
+    local targetPos is targetOrbit:position - body:position.
+    local targetVel is targetOrbit:velocity:orbit.
+    local targetNormal is orbitNormal(targetPos, targetVel).
+
+    // relative inclination between the two planes
+    local relInc is vang(orbNormal, targetNormal).
+    if relInc < 0.01 { return -1. }
+
+    // line of nodes: intersection of the two orbital planes
+    local nodeDir is vcrs(orbNormal, targetNormal):normalized.
+
+    // signed angle from vessel position to nodeDir
+    local vesPosNorm is vesPos:normalized.
+    local posToNode is arctan2(
+        vdot(vcrs(vesPosNorm, nodeDir), orbNormal),
+        vdot(vesPosNorm, nodeDir)).
+
+    // true anomaly at each node crossing
+    local taNode is mod(initialOrbit:trueAnomaly + posToNode, 360).
+    if taNode < 0 { set taNode to taNode + 360. }
+    local taOpposite is mod(taNode + 180, 360).
+
+    // pick whichever node comes sooner
+    local etaNode is etaToTrueAnomaly(taNode, initialOrbit).
+    local etaOpposite is etaToTrueAnomaly(taOpposite, initialOrbit).
+
+    local burnTA is taNode.
+    local burnEta is etaNode.
+    local burnAtNodeDir is true.
+    if etaOpposite < etaNode {
+        set burnTA to taOpposite.
+        set burnEta to etaOpposite.
+        set burnAtNodeDir to false.
+    }
+
+    local burnTime is scheduleAfterNodes(time:seconds + burnEta, initialOrbit:period).
+
+    // delta-v: rotate velocity by relInc around the radial axis in TRN
+    local burnAlt is altitudeAtTrueAnomaly(burnTA, initialOrbit).
+    local burnSpeed is visViva(burnAlt, initialOrbit:semimajoraxis, initialOrbit:body).
+    local currTRN is prnToTrn(V(burnSpeed, 0, 0), burnTA, initialOrbit:eccentricity).
+
+    // sign = -1 at nodeDir, +1 at opposite
+    // (kOS positive normal = north = opposite of orbNormal)
+    local sign is choose -1 if burnAtNodeDir else 1.
+    local dT is currTRN:x * (cos(relInc) - 1).
+    local dN is sign * currTRN:x * sin(relInc).
+    local dvPRN is TrnToPrn(V(dT, 0, dN), burnTA, initialOrbit:eccentricity).
+
+    print "Plane change: " + round(relInc, 2) + " deg".
+    print "dv=" + round(dvPRN:mag, 2) + " m/s"
+        + " (pro=" + round(dvPRN:x, 2)
+        + " rad=" + round(dvPRN:y, 2)
+        + " nrm=" + round(dvPRN:z, 2) + ")".
+
+    return node(burnTime, dvPRN:y, dvPRN:z, dvPRN:x).
+}
+
+// push node time past any existing nodes by adding orbital periods
+function scheduleAfterNodes {
+    parameter nodeTime.
+    parameter period.
+
     if hasNode {
         until nodeTime > allNodes[allNodes:length-1]:time {
-            set nodeTime to nodeTime + initialOrbit:period.
+            set nodeTime to nodeTime + period.
         }
     }
-    return node(nodeTime, 0, 0, dv).
+    return nodeTime.
 }
 
 // add a node if delta-v is high enough
@@ -165,11 +237,11 @@ function addNode {
         wait 0.
         if allNodes:length <= prevCount {
             print "WARNING: node add failed (time may precede existing node)".
-        } else if abs(allNodes[allNodes:length-1]:prograde) < thres {
+        } else if allNodes[allNodes:length-1]:deltav:mag < thres {
             remove newNode.
             print "node has low dv, removing".
         } else {
-            print "added node with dv of " + allNodes[allNodes:length-1]:prograde.
+            print "added node with dv of " + round(allNodes[allNodes:length-1]:deltav:mag, 3).
         }
     } else {
         print "failed".

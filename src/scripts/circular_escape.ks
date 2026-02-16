@@ -84,7 +84,7 @@ if orbit:eccentricity >= 1 {
     // vessel position relative to body
     local vesPos is (-body:position):normalized.
     // orbital normal (angular momentum direction)
-    local orbNormal is vcrs(vesPos, velocity:orbit):normalized.
+    local orbNormal is orbitNormal(vesPos, velocity:orbit).
 
     // project body's prograde onto the vessel's orbital plane
     local bodyProPlane is bodyPro - vdot(bodyPro, orbNormal) * orbNormal.
@@ -117,12 +117,7 @@ if orbit:eccentricity >= 1 {
     set burnEta to burnOffset / 360 * orbit:period.
 
     // node placement
-    local nodeTime is time:seconds + burnEta.
-    if hasNode {
-        until nodeTime > allNodes[allNodes:length-1]:time {
-            set nodeTime to nodeTime + orbit:period.
-        }
-    }
+    local nodeTime is scheduleAfterNodes(time:seconds + burnEta, orbit:period).
 
     local dirStr is choose "prograde" if escapeDir = 0 else "retrograde".
     print "dv=" + round(dv, 2) + " m/s " + dirStr.

@@ -47,11 +47,10 @@ local node1Alt is 0.
 
 if hasNode {
     set node1 to nodeChangeApsis(rb, burnAnomaly, allNodes[allNodes:length-1]:orbit, safety).
-    // compute altitude at burn anomaly
-    set node1Alt to allNodes[allNodes:length-1]:orbit:semimajoraxis * (1 - allNodes[allNodes:length-1]:orbit:eccentricity^2) / (1 + allNodes[allNodes:length-1]:orbit:eccentricity * cos(burnAnomaly)) - allNodes[allNodes:length-1]:orbit:body:radius.
+    set node1Alt to altitudeAtTrueAnomaly(burnAnomaly, allNodes[allNodes:length-1]:orbit).
 } else {
     set node1 to nodeChangeApsis(rb, burnAnomaly, targetPatch, safety).
-    set node1Alt to targetPatch:semimajoraxis * (1 - targetPatch:eccentricity^2) / (1 + targetPatch:eccentricity * cos(burnAnomaly)) - targetPatch:body:radius.
+    set node1Alt to altitudeAtTrueAnomaly(burnAnomaly, targetPatch).
 }
 
 addNode(node1).
