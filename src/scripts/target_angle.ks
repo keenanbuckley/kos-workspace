@@ -5,18 +5,23 @@
 
 parameter targetAngle is 0.
 
-print "Ownship Orbital Period: " + ship:orbit:period.
+if orbit:eccentricity >= 1 {
+    print "target_angle requires an elliptical orbit.".
+} else if not hasTarget {
+    print "No target selected.".
+} else {
 
-print "Ownship Epoch: " + ship:orbit:epoch.
-print "Ownship Mean Anomaly at Epoch: " + ship:orbit:meananomalyatepoch.
-print "Ownship Mean Anomaly at Periapsis: " + 0.
+    print "Ownship Orbital Period: " + ship:orbit:period.
 
-print "Target Argument of Periapsis: " + ship:orbit:argumentofperiapsis.
-print "Ownship Longitude of Ascending Node: " + ship:orbit:longitudeofascendingnode.
-lock shipCombinedAngle to ship:orbit:argumentofperiapsis + ship:orbit:longitudeofascendingnode.
-print "Ownship Combined Angle: " + shipCombinedAngle.
+    print "Ownship Epoch: " + ship:orbit:epoch.
+    print "Ownship Mean Anomaly at Epoch: " + ship:orbit:meananomalyatepoch.
+    print "Ownship Mean Anomaly at Periapsis: " + 0.
 
-if hasTarget {
+    print "Target Argument of Periapsis: " + ship:orbit:argumentofperiapsis.
+    print "Ownship Longitude of Ascending Node: " + ship:orbit:longitudeofascendingnode.
+    lock shipCombinedAngle to ship:orbit:argumentofperiapsis + ship:orbit:longitudeofascendingnode.
+    print "Ownship Combined Angle: " + shipCombinedAngle.
+
     print "Target Orbital Period: " + target:orbit:period.
 
     print "Target Epoch: " + target:orbit:epoch.
@@ -33,6 +38,6 @@ if hasTarget {
     print "Delta Angle at Ownship Periapsis: " + currAngle.
     print "Requested Delta Mean Anomaly: " + targetAngle.
     local lock angleError to (mod(180 + targetAngle-currAngle, 360) - 180).
-    
+
     runPath("0:/src/scripts/shift_by_anomaly", angleError, target:orbit:apoapsis, target:orbit:periapsis).
 }

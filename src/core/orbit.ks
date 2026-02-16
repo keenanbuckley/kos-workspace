@@ -1,6 +1,8 @@
 // orbit.ks provides functions for creating orbit objects and calculating orbital parameters
 @lazyGlobal off.
 
+runOncePath("0:/src/core/trig").
+
 function apoPeriToOrbit {
     parameter apo.
     parameter peri.
@@ -83,8 +85,16 @@ function trueAnomalyToMeanAnomaly {
     parameter trueAnomaly.
     parameter ecc.
 
-    local eccAnomaly is arcTan2(sqrt(1 - ecc^2) * sin(trueAnomaly), ecc + cos(trueAnomaly)).
-    return eccAnomaly - constant:radtodeg*ecc*sin(eccAnomaly).
+    if ecc < 1 {
+        local eccAnomaly is arcTan2(sqrt(1 - ecc^2) * sin(trueAnomaly), ecc + cos(trueAnomaly)).
+        return eccAnomaly - constant:radtodeg*ecc*sin(eccAnomaly).
+    } else {
+        local coshH is (ecc + cos(trueAnomaly)) / (1 + ecc * cos(trueAnomaly)).
+        local H is acosh(coshH).
+        if sin(trueAnomaly) < 0 { set H to -H. }
+        local M_h is ecc * sinh(H) - H.
+        return M_h * constant:radtodeg.
+    }
 }
 
 // time from now until the vessel reaches a given true anomaly
@@ -92,11 +102,24 @@ function etaToTrueAnomaly {
     parameter trueAnomaly.
     parameter initialOrbit is orbit.
 
-    local result is (initialOrbit:period / 360)
-        * trueAnomalyToMeanAnomaly(trueAnomaly, initialOrbit:eccentricity)
-        + initialOrbit:eta:periapsis.
-    set result to mod(result, initialOrbit:period).
-    if result < 0 { set result to result + initialOrbit:period. }
+    local ecc is initialOrbit:eccentricity.
+    local result is 0.
+
+    if ecc < 1 {
+        set result to (initialOrbit:period / 360)
+            * trueAnomalyToMeanAnomaly(trueAnomaly, ecc)
+            + initialOrbit:eta:periapsis.
+        set result to mod(result, initialOrbit:period).
+        if result < 0 { set result to result + initialOrbit:period. }
+    } else {
+        local coshH is (ecc + cos(trueAnomaly)) / (1 + ecc * cos(trueAnomaly)).
+        local H is acosh(coshH).
+        if sin(trueAnomaly) < 0 { set H to -H. }
+        local M_h is ecc * sinh(H) - H.
+        set result to M_h * sqrt((-initialOrbit:semimajoraxis)^3
+            / initialOrbit:body:mu) + initialOrbit:eta:periapsis.
+    }
+
     return result.
 }
 

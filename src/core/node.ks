@@ -54,8 +54,16 @@ function timeTrueAnomaly {
     parameter ecc.
     parameter orbitingBody is body.
 
-    local X is (sqrt(1 - ecc^2) * sin(trueAnomaly)) / (1 + ecc*cos(trueAnomaly)).
-    return sqrt(semiMajorAxis^3 / orbitingBody:mu) * (constant:degtorad*arcSin(X) - ecc*X).
+    if ecc < 1 {
+        local X is (sqrt(1 - ecc^2) * sin(trueAnomaly)) / (1 + ecc*cos(trueAnomaly)).
+        return sqrt(semiMajorAxis^3 / orbitingBody:mu) * (constant:degtorad*arcSin(X) - ecc*X).
+    } else {
+        local coshH is (ecc + cos(trueAnomaly)) / (1 + ecc * cos(trueAnomaly)).
+        local H is acosh(coshH).
+        if sin(trueAnomaly) < 0 { set H to -H. }
+        local M_h is ecc * sinh(H) - H.
+        return M_h * sqrt((-semiMajorAxis)^3 / orbitingBody:mu).
+    }
 }
 
 // generate a node at apoapsis to change the height of the periapsis
@@ -63,6 +71,8 @@ function nodeChangePeriapsis {
     parameter targetPeriapsis.
     parameter initialOrbit is orbit.
     parameter safety is true.
+
+    if initialOrbit:eccentricity >= 1 { return -1. }
 
     // bound target to range
     // bound target apoapsis to range
@@ -80,6 +90,8 @@ function nodeChangeApoapsis {
     parameter targetApoapsis.
     parameter initialOrbit is orbit.
     parameter safety is true.
+
+    if initialOrbit:eccentricity >= 1 { return -1. }
 
     // As of now, this function can only generate nodes at the periapsis
     // also bound target apoapsis to range
@@ -113,7 +125,10 @@ function nodeChangeApsis {
 
         local deltaV is TrnToPrn(targetVel - currVel, trueAnomaly, initialOrbit:eccentricity).
         local nodeEta is etaToTrueAnomaly(trueAnomaly, initialOrbit).
-        local nodeTime is scheduleAfterNodes(nodeEta + time:seconds, initialOrbit:period).
+        local nodeTime is nodeEta + time:seconds.
+        if initialOrbit:eccentricity < 1 {
+            set nodeTime to scheduleAfterNodes(nodeTime, initialOrbit:period).
+        }
         return node(nodeTime, deltaV:y, deltaV:z, deltaV:x).
     }
     return -1.
@@ -218,7 +233,7 @@ function scheduleAfterNodes {
     parameter nodeTime.
     parameter period.
 
-    if hasNode {
+    if hasNode and period < 2^50 {
         until nodeTime > allNodes[allNodes:length-1]:time {
             set nodeTime to nodeTime + period.
         }

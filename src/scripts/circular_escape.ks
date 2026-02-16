@@ -64,10 +64,8 @@ if orbit:eccentricity >= 1 {
         set escapeTime to M_rad * sqrt(aEsc^3 / body:mu).
     } else {
         // hyperbolic: hyperbolic Kepler's equation
-        local coshH is (e + cos(nuExit)) / (1 + e * cos(nuExit)).
-        local sinhH is sqrt(coshH^2 - 1).
-        local H is ln(coshH + sinhH).
-        local M_h is e * sinhH - H.
+        local H is acosh((e + cos(nuExit)) / (1 + e * cos(nuExit))).
+        local M_h is e * sinh(H) - H.
         set escapeTime to M_h * sqrt((-aEsc)^3 / body:mu).
     }
 
