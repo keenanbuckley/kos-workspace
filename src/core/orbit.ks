@@ -186,7 +186,8 @@ function launchAzimuth {
     parameter orbitBody is body.
 
     // Inertial azimuth from spherical trig: cos(i) = cos(lat) * sin(az)
-    local inertialAzimuth is arcsin(cos(targetInclination) / cos(launchLatitude)).
+    local sinAz is cos(targetInclination) / cos(launchLatitude).
+    local inertialAzimuth is arcsin(min(1, max(-1, sinAz))).
 
     // Orbital velocity for a circular orbit at target altitude (vis-viva)
     local targetRadius is orbitBody:radius + targetAltitude.
