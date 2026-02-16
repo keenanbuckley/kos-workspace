@@ -10,6 +10,7 @@ packages:
       - 0:/src/scripts/lock_steering.ks
       - 0:/src/scripts/land.ks
       - 0:/src/scripts/plane_change.ks
+      - 0:/src/scripts/transfer_to.ks
       - 0:/src/pacman/install.ks
     persistent_data: true
     compile: true
@@ -35,6 +36,7 @@ packages:
     online_scripts:
       - 0:/src/scripts/lock_steering.ks
       - 0:/src/scripts/plane_change.ks
+      - 0:/src/scripts/transfer_to.ks
       - 0:/src/pacman/install.ks
     persistent_data: true
     compile: true

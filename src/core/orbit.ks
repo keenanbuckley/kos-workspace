@@ -126,6 +126,33 @@ function orbitNormal {
     return vcrs(pos, vel):normalized.
 }
 
+// signed angle (degrees) from fromVec to toVec around normalVec
+// positive = toVec is counter-clockwise from fromVec when viewed from normalVec
+function signedAngle {
+    parameter fromVec.
+    parameter toVec.
+    parameter normalVec.
+
+    return arctan2(
+        vdot(vcrs(fromVec:normalized, toVec:normalized), normalVec:normalized),
+        vdot(fromVec:normalized, toVec:normalized)).
+}
+
+// ideal phase angle (degrees) for a Hohmann transfer between two circular orbits
+// departAlt and targetAlt are altitudes above the parent body surface
+function hohmannPhaseAngle {
+    parameter departAlt.
+    parameter targetAlt.
+    parameter parentBody is body.
+
+    local r1 is departAlt + parentBody:radius.
+    local r2 is targetAlt + parentBody:radius.
+    local transferSMA is (r1 + r2) / 2.
+    local transferTime is constant:pi * sqrt(transferSMA^3 / parentBody:mu).
+    local targetPeriod is 2 * constant:pi * sqrt(r2^3 / parentBody:mu).
+    return 180 - (360 / targetPeriod) * transferTime.
+}
+
 // converts from [prograde, radial, normal] space to [tangent, radial, normal] space
 function prnToTrn {
     parameter prnVec.
