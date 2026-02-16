@@ -126,6 +126,34 @@ function nodeChangeApsis {
     return -1.
 }
 
+// generate a prograde node at periapsis to escape the current SOI
+// vSOI is the desired speed relative to the body at the SOI boundary
+function nodeEscape {
+    parameter vSOI is 0.
+    parameter initialOrbit is orbit.
+
+    if initialOrbit:eccentricity >= 1 { return -1. }
+
+    local burnAlt is initialOrbit:periapsis.
+    local burnR is burnAlt + initialOrbit:body:radius.
+    local soiR is initialOrbit:body:soiRadius.
+    // minimum SOI boundary speed due to angular momentum constraint
+    // orbit must cross SOI, not just touch it, so use 0.99*soiR as effective boundary
+    local vSOIMin is sqrt(2 * initialOrbit:body:mu * burnR / (soiR * 0.99 * (soiR * 0.99 + burnR))).
+    if vSOI < vSOIMin { set vSOI to vSOIMin. }
+    local vCurrent is velocityPeriapsis(initialOrbit:apoapsis, initialOrbit:periapsis, initialOrbit:body).
+    local vBurn is sqrt(vSOI^2 + 2 * initialOrbit:body:mu * (1/burnR - 1/soiR)).
+    local dv is vBurn - vCurrent.
+
+    local nodeTime is initialOrbit:eta:periapsis + time:seconds.
+    if hasNode {
+        until nodeTime > allNodes[allNodes:length-1]:time {
+            set nodeTime to nodeTime + initialOrbit:period.
+        }
+    }
+    return node(nodeTime, 0, 0, dv).
+}
+
 // add a node if delta-v is high enough
 function addNode {
     parameter newNode.
