@@ -3,7 +3,7 @@
 
 // these defaults seem to work well when launching from KSC
 parameter finalAltitude is 80000.
-parameter compassHeading is 90.
+parameter targetInclination is 0.
 parameter turnRate is 12.
 parameter targetTWR is 2.0.
 parameter initialSpeed is 100.
@@ -17,6 +17,9 @@ print "RUNNING launch".
 // define utility functions
 runOncePath("0:/src/display/terminal").
 runOncePath("0:/src/core/engine").
+runOncePath("0:/src/core/orbit").
+
+local compassHeading is launchAzimuth(targetInclination, finalAltitude).
 
 // timewarp to 3 seconds before launch
 if targetLan >= 0 {

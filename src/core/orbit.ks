@@ -119,3 +119,30 @@ function TrnToPrn {
     return V(trnVec:x * sqrt(tFpa^2 + 1), trnVec:y - tFpa * trnVec:x, trnVec:z).
 }
 
+// computes the compass heading for a launch into a target orbital inclination,
+// corrected for the body's surface rotation velocity.
+function launchAzimuth {
+    parameter targetInclination.
+    parameter targetAltitude is 80000.
+    parameter launchLatitude is ship:geoPosition:lat.
+    parameter orbitBody is body.
+
+    // Inertial azimuth from spherical trig: cos(i) = cos(lat) * sin(az)
+    local inertialAzimuth is arcsin(cos(targetInclination) / cos(launchLatitude)).
+
+    // Orbital velocity for a circular orbit at target altitude (vis-viva)
+    local targetRadius is orbitBody:radius + targetAltitude.
+    local vOrbit is sqrt(orbitBody:mu / targetRadius).
+
+    // Surface rotation velocity at launch latitude
+    local vRot is (2 * constant:pi * orbitBody:radius * cos(launchLatitude)) / orbitBody:rotationPeriod.
+
+    // Subtract rotation from inertial velocity to get surface-relative heading
+    local vXrot is vOrbit * sin(inertialAzimuth) - vRot.
+    local vYrot is vOrbit * cos(inertialAzimuth).
+
+    local azimuth is arctan2(vXrot, vYrot).
+    if azimuth < 0 { set azimuth to azimuth + 360. }
+    return azimuth.
+}
+
