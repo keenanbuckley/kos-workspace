@@ -20,12 +20,7 @@ if targetBody:orbit:body <> body {
     local departAlt is orbit:semimajoraxis - body:radius.
     local targetAlt is targetBody:orbit:semimajoraxis - body:radius.
 
-    // ideal phase angle for the transfer
-    local idealPhase is hohmannPhaseAngle(departAlt, targetAlt, body).
-    print "Ideal phase angle: " + round(idealPhase, 2) + " deg".
-
-    // current phase angle: signed angle from vessel to target body
-    // positive = target is ahead in the direction of orbital motion
+    // phase geometry (doesn't depend on targetAlt)
     local vesPos is -body:position.
     local targetPos is targetBody:position - body:position.
     local orbNml is orbitNormal(vesPos, velocity:orbit).
@@ -33,14 +28,32 @@ if targetBody:orbit:body <> body {
     local currentPhase is signedAngle(vesPos, targetPos, -orbNml).
     set currentPhase to mod(currentPhase, 360).
     if currentPhase < 0 { set currentPhase to currentPhase + 360. }
-    print "Current phase angle: " + round(currentPhase, 2) + " deg".
 
-    // ETA to burn: how long until the phase angle matches
     local phaseRate is 360 / orbit:period - 360 / targetBody:orbit:period.
+
+    // estimate arrival time using SMA-based transfer
+    local r1 is departAlt + body:radius.
+    local tof is constant:pi
+        * sqrt(((r1 + targetAlt + body:radius) / 2)^3 / body:mu).
+    local idealPhase is hohmannPhaseAngle(departAlt, targetAlt, body).
     local deltaPhase is mod(currentPhase - idealPhase, 360).
     if deltaPhase < 0 { set deltaPhase to deltaPhase + 360. }
     local burnEta is deltaPhase / phaseRate.
-    print "Burn ETA: " + round(burnEta, 1) + " s (" + round(burnEta / orbit:period, 1) + " orbits)".
+
+    // correct targetAlt using target's predicted position at arrival
+    local arrivalTA is TrueAnomalyAtEta(burnEta + tof, targetBody:orbit).
+    set targetAlt to altitudeAtTrueAnomaly(arrivalTA, targetBody:orbit).
+
+    // recompute transfer parameters with corrected altitude
+    set idealPhase to hohmannPhaseAngle(departAlt, targetAlt, body).
+    print "Ideal phase angle: " + round(idealPhase, 2) + " deg".
+    print "Current phase angle: " + round(currentPhase, 2) + " deg".
+
+    set deltaPhase to mod(currentPhase - idealPhase, 360).
+    if deltaPhase < 0 { set deltaPhase to deltaPhase + 360. }
+    set burnEta to deltaPhase / phaseRate.
+    print "Burn ETA: " + round(burnEta, 1) + " s ("
+        + round(burnEta / orbit:period, 1) + " orbits)".
 
     // true anomaly at burn time (exact for circular orbits)
     local burnTA is mod(orbit:trueAnomaly + burnEta * 360 / orbit:period, 360).
