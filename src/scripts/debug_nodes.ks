@@ -64,7 +64,8 @@ if not hasNode {
         print "  pro=" + round(nd:prograde, 3)
             + " rad=" + round(nd:radialout, 3)
             + " nrm=" + round(nd:normal, 3).
-        print "  dv=" + round(nd:deltav:mag, 3) + " m/s".
+        local dv is sqrt(nd:prograde^2 + nd:radialout^2 + nd:normal^2).
+        print "  dv=" + round(dv, 3) + " m/s".
         printOrbit("  --- Post-Node Orbit ---", nd:orbit).
         printPatches(nd:orbit).
         set i to i + 1.
