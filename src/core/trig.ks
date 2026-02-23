@@ -11,6 +11,11 @@ function cosh {
     return (constant:e^x + constant:e^(-x)) / 2.
 }
 
+function asinh {
+    parameter x.
+    return ln(x + sqrt(x^2 + 1)).
+}
+
 function acosh {
     parameter x.
     return ln(x + sqrt(x^2 - 1)).

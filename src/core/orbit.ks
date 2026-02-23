@@ -97,8 +97,126 @@ function trueAnomalyToMeanAnomaly {
     }
 }
 
-// time from now until the vessel reaches a given true anomaly
-function etaToTrueAnomaly {
+// inverse of trueAnomalyToMeanAnomaly: mean anomaly (degrees) to true anomaly (degrees)
+// Newton-Raphson iteration on the Kepler equation
+// Hyperbolic starting point: Prop. 1, Farnocchia et al. (2013)
+// "Robust resolution of Kepler's equation in all eccentricity regimes"
+function meanAnomalyToTrueAnomaly {
+    parameter M.
+    parameter ecc.
+
+    if ecc < 1 {
+        local E is M + constant:radtodeg * ecc * sin(M).
+        local delta is 1.
+        local iter is 0.
+        until abs(delta) < 1e-8 or iter >= 30 {
+            set delta to (E - constant:radtodeg * ecc * sin(E) - M)
+                / (1 - ecc * cos(E)).
+            set E to E - delta.
+            set iter to iter + 1.
+        }
+        return arcTan2(sqrt((1 - ecc) * (1 + ecc)) * sin(E),
+            cos(E) - ecc).
+    } else {
+        local M_rad is M * constant:degtorad.
+        local absM is abs(M_rad).
+        local C is constant:e * (ecc + 2 * absM)
+            / (ecc * constant:e - 2).
+        local Fi is min(asinh(absM / (ecc - 1)), ln(C)).
+        if M_rad < 0 { set Fi to -Fi. }
+        local H is Fi.
+        local delta is 1.
+        local iter is 0.
+        until abs(delta) < 1e-10 or iter >= 30 {
+            set delta to (ecc * sinh(H) - H - M_rad)
+                / (ecc * cosh(H) - 1).
+            set H to H - delta.
+            set iter to iter + 1.
+        }
+        return arcTan2(sqrt((ecc - 1) * (ecc + 1)) * sinh(H),
+            ecc - cosh(H)).
+    }
+}
+
+// near-parabolic Kepler solver: Farnocchia et al. (2013)
+// "Robust resolution of Kepler's equation in all eccentricity regimes"
+// Celest. Mech. Dyn. Astr. 116:21-34
+// three-region strategy: strong elliptic / near parabolic / strong hyperbolic
+function meanAnomalyToTrueAnomalyNP {
+    parameter M.
+    parameter ecc.
+
+    local npDelta is 0.01.
+
+    if ecc < 1 - npDelta {
+        return meanAnomalyToTrueAnomaly(M, ecc).
+    } else if ecc > 1 + npDelta {
+        return meanAnomalyToTrueAnomaly(M, ecc).
+    }
+
+    // boundary detection: check if solution is in the near-parabolic region
+    local M_P is 0.
+    if ecc < 1 {
+        local E_b is arccos((1 - npDelta) / ecc).
+        local M_b is E_b - constant:radtodeg * ecc * sin(E_b).
+        if abs(M) > abs(M_b) {
+            return meanAnomalyToTrueAnomaly(M, ecc).
+        }
+        set M_P to M * constant:degtorad
+            / (sqrt(2) * (1 - ecc)^1.5).
+    } else if ecc > 1 {
+        local F_b is acosh((1 + npDelta) / ecc).
+        local M_Hb is ecc * sinh(F_b) - F_b.
+        if abs(M * constant:degtorad) > abs(M_Hb) {
+            return meanAnomalyToTrueAnomaly(M, ecc).
+        }
+        set M_P to M * constant:degtorad
+            / (sqrt(2) * (ecc - 1)^1.5).
+    } else {
+        // e = 1 exactly: M is not meaningful, treat as e = 1 - 1e-10
+        return meanAnomalyToTrueAnomalyNP(M, 1 - 1e-10).
+    }
+
+    // Barker starting point (Battin 1987): solve D + D^3/3 = M_P
+    local B is 1.5 * M_P.
+    local A is (B + sqrt(1 + B^2))^(2/3).
+    local D is 2 * A * B / (1 + A + A^2).
+
+    // Newton iteration on chi_NP(e, D) = M_P
+    local delta is 1.
+    local iter is 0.
+    until abs(delta) < 1e-12 or iter >= 30 {
+        local x is (ecc - 1) / (ecc + 1) * D^2.
+        local S is 0.
+        local Sd is 0.
+        local xk is 1.
+        local k is 0.
+        until k >= 20 {
+            local coeff is ecc - 1 / (2 * k + 3).
+            set S to S + coeff * xk.
+            set Sd to Sd + coeff * (2 * k + 3) * xk.
+            set xk to xk * x.
+            if abs(xk) < 1e-14 and k > 0 { break. }
+            set k to k + 1.
+        }
+        local rCoeff is sqrt(2 / (1 + ecc)).
+        local chi is rCoeff * D + rCoeff / (1 + ecc) * D^3 * S.
+        local dchi is rCoeff + rCoeff / (1 + ecc) * D^2 * Sd.
+        set delta to (chi - M_P) / dchi.
+        set D to D - delta.
+        set iter to iter + 1.
+    }
+
+    local result is 2 * arctan(D).
+    if ecc < 1 {
+        set result to mod(result, 360).
+        if result < 0 { set result to result + 360. }
+    }
+    return result.
+}
+
+// time from now until a given true anomaly in degrees
+function etaAtTrueAnomaly {
     parameter trueAnomaly.
     parameter initialOrbit is orbit.
 
@@ -120,6 +238,33 @@ function etaToTrueAnomaly {
             / initialOrbit:body:mu) + initialOrbit:eta:periapsis.
     }
 
+    return result.
+}
+
+// true anomaly in degrees at a given time from now
+function TrueAnomalyAtEta {
+    parameter dt.
+    parameter initialOrbit is orbit.
+
+    local ecc is initialOrbit:eccentricity.
+    local currentTA is initialOrbit:trueAnomaly.
+    local M is trueAnomalyToMeanAnomaly(currentTA, ecc).
+
+    if ecc < 1 {
+        set M to M + (360 / initialOrbit:period) * dt.
+        set M to mod(M, 360).
+        if M < 0 { set M to M + 360. }
+    } else {
+        local n is sqrt(initialOrbit:body:mu
+            / (-initialOrbit:semimajoraxis)^3).
+        set M to M + n * dt * constant:radtodeg.
+    }
+
+    local result is meanAnomalyToTrueAnomaly(M, ecc).
+    if ecc < 1 {
+        set result to mod(result, 360).
+        if result < 0 { set result to result + 360. }
+    }
     return result.
 }
 

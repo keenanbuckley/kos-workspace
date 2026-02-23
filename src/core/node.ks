@@ -124,7 +124,7 @@ function nodeChangeApsis {
         local targetVel is rnpToTzn(V(0,0,targetSpeed), targetTrueAnomaly, targetEcc).
 
         local deltaV is tznToRnp(targetVel - currVel, trueAnomaly, initialOrbit:eccentricity).
-        local nodeEta is etaToTrueAnomaly(trueAnomaly, initialOrbit).
+        local nodeEta is etaAtTrueAnomaly(trueAnomaly, initialOrbit).
         local nodeTime is nodeEta + time:seconds.
         if initialOrbit:eccentricity < 1 {
             set nodeTime to scheduleAfterNodes(nodeTime, initialOrbit:period).
@@ -193,8 +193,8 @@ function nodeChangePlane {
     local taOpposite is mod(taNode + 180, 360).
 
     // pick whichever node comes sooner
-    local etaNode is etaToTrueAnomaly(taNode, initialOrbit).
-    local etaOpposite is etaToTrueAnomaly(taOpposite, initialOrbit).
+    local etaNode is etaAtTrueAnomaly(taNode, initialOrbit).
+    local etaOpposite is etaAtTrueAnomaly(taOpposite, initialOrbit).
 
     local burnTA is taNode.
     local burnEta is etaNode.
