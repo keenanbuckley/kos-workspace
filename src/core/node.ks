@@ -120,16 +120,16 @@ function nodeChangeApsis {
         local currSpeed is visViva(orbitingAltitude, initialOrbit:semimajoraxis, initialOrbit:body).
         local targetSpeed is visViva(orbitingAltitude, apsesToSemiMajor(orbitingAltitude, targetApsis, initialOrbit:body), initialOrbit:body).
 
-        local currVel is prnToTrn(V(currSpeed,0,0), trueAnomaly, initialOrbit:eccentricity).
-        local targetVel is prnToTrn(V(targetSpeed,0,0), targetTrueAnomaly, targetEcc).
+        local currVel is rnpToTzn(V(0,0,currSpeed), trueAnomaly, initialOrbit:eccentricity).
+        local targetVel is rnpToTzn(V(0,0,targetSpeed), targetTrueAnomaly, targetEcc).
 
-        local deltaV is TrnToPrn(targetVel - currVel, trueAnomaly, initialOrbit:eccentricity).
+        local deltaV is tznToRnp(targetVel - currVel, trueAnomaly, initialOrbit:eccentricity).
         local nodeEta is etaToTrueAnomaly(trueAnomaly, initialOrbit).
         local nodeTime is nodeEta + time:seconds.
         if initialOrbit:eccentricity < 1 {
             set nodeTime to scheduleAfterNodes(nodeTime, initialOrbit:period).
         }
-        return node(nodeTime, deltaV:y, deltaV:z, deltaV:x).
+        return node(nodeTime, deltaV:x, deltaV:y, deltaV:z).
     }
     return -1.
 }
@@ -207,25 +207,25 @@ function nodeChangePlane {
 
     local burnTime is scheduleAfterNodes(time:seconds + burnEta, initialOrbit:period).
 
-    // delta-v: rotate velocity by relInc around the radial axis in TRN
+    // delta-v: rotate velocity by relInc around the zenith axis in TZN
     local burnAlt is altitudeAtTrueAnomaly(burnTA, initialOrbit).
     local burnSpeed is visViva(burnAlt, initialOrbit:semimajoraxis, initialOrbit:body).
-    local currTRN is prnToTrn(V(burnSpeed, 0, 0), burnTA, initialOrbit:eccentricity).
+    local currTZN is rnpToTzn(V(0, 0, burnSpeed), burnTA, initialOrbit:eccentricity).
 
     // sign = -1 at nodeDir, +1 at opposite
     // (kOS positive normal = north = opposite of orbNormal)
     local sign is choose -1 if burnAtNodeDir else 1.
-    local dT is currTRN:x * (cos(relInc) - 1).
-    local dN is sign * currTRN:x * sin(relInc).
-    local dvPRN is TrnToPrn(V(dT, 0, dN), burnTA, initialOrbit:eccentricity).
+    local dT is currTZN:x * (cos(relInc) - 1).
+    local dN is sign * currTZN:x * sin(relInc).
+    local dvRNP is tznToRnp(V(dT, 0, dN), burnTA, initialOrbit:eccentricity).
 
     print "Plane change: " + round(relInc, 2) + " deg".
-    print "dv=" + round(dvPRN:mag, 2) + " m/s"
-        + " (pro=" + round(dvPRN:x, 2)
-        + " rad=" + round(dvPRN:y, 2)
-        + " nrm=" + round(dvPRN:z, 2) + ")".
+    print "dv=" + round(dvRNP:mag, 2) + " m/s"
+        + " (rad=" + round(dvRNP:x, 2)
+        + " nrm=" + round(dvRNP:y, 2)
+        + " pro=" + round(dvRNP:z, 2) + ")".
 
-    return node(burnTime, dvPRN:y, dvPRN:z, dvPRN:x).
+    return node(burnTime, dvRNP:x, dvRNP:y, dvRNP:z).
 }
 
 // push node time past any existing nodes by adding orbital periods

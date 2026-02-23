@@ -176,28 +176,92 @@ function hohmannPhaseAngle {
     return 180 - (360 / targetPeriod) * transferTime.
 }
 
-// converts from [prograde, radial, normal] space to [tangent, radial, normal] space
-function prnToTrn {
-    parameter prnVec.
+// converts from TZN [tangential, zenith, normal] to RNP [radialout, normal, prograde]
+// rotation by flight path angle gamma around the normal axis
+function tznToRnp {
+    parameter tznVec.
     parameter trueAnomaly.
     parameter ecc.
 
     local tFpa is tanFpa(trueAnomaly, ecc).
-    local progradeTan is prnVec:x / sqrt(tFpa^2 + 1).
-    local progradeRad is tFpa * progradeTan.
+    local cosG is 1 / sqrt(tFpa^2 + 1).
+    local sinG is tFpa * cosG.
 
-    return V(progradeTan, progradeRad + prnVec:y, prnVec:z).
+    return V(
+        -tznVec:x * sinG + tznVec:y * cosG,
+        tznVec:z,
+        tznVec:x * cosG + tznVec:y * sinG
+    ).
 }
 
-// converts from [tangent, radial, normal] space to [prograde, radial, normal] space
-function TrnToPrn {
-    parameter trnVec.
+// converts from RNP [radialout, normal, prograde] to TZN [tangential, zenith, normal]
+// inverse rotation by flight path angle gamma around the normal axis
+function rnpToTzn {
+    parameter rnpVec.
     parameter trueAnomaly.
     parameter ecc.
 
     local tFpa is tanFpa(trueAnomaly, ecc).
+    local cosG is 1 / sqrt(tFpa^2 + 1).
+    local sinG is tFpa * cosG.
 
-    return V(trnVec:x * sqrt(tFpa^2 + 1), trnVec:y - tFpa * trnVec:x, trnVec:z).
+    return V(
+        rnpVec:z * cosG - rnpVec:x * sinG,
+        rnpVec:z * sinG + rnpVec:x * cosG,
+        rnpVec:y
+    ).
+}
+
+// converts from TZN [tangential, zenith, normal] to PQW [periapsis, perpendicular, angular momentum]
+// rotation by true anomaly around the normal axis
+function tznToPqw {
+    parameter tznVec.
+    parameter trueAnomaly.
+
+    return V(
+        -tznVec:x * sin(trueAnomaly) + tznVec:y * cos(trueAnomaly),
+        tznVec:x * cos(trueAnomaly) + tznVec:y * sin(trueAnomaly),
+        tznVec:z
+    ).
+}
+
+// converts from PQW [periapsis, perpendicular, angular momentum] to TZN [tangential, zenith, normal]
+// inverse rotation by true anomaly around the normal axis
+function pqwToTzn {
+    parameter pqwVec.
+    parameter trueAnomaly.
+
+    return V(
+        -pqwVec:x * sin(trueAnomaly) + pqwVec:y * cos(trueAnomaly),
+        pqwVec:x * cos(trueAnomaly) + pqwVec:y * sin(trueAnomaly),
+        pqwVec:z
+    ).
+}
+
+// converts from TZN [tangential, zenith, normal] to the kOS raw (global inertial) frame
+function tznToRaw {
+    parameter tznVec.
+    parameter pos is -body:position.
+    parameter vel is velocity:orbit.
+
+    local zHat is pos:normalized.
+    local nHat is orbitNormal(pos, vel).
+    local tHat is vcrs(nHat, zHat):normalized.
+
+    return tznVec:x * tHat + tznVec:y * zHat + tznVec:z * nHat.
+}
+
+// converts from the kOS raw (global inertial) frame to TZN [tangential, zenith, normal]
+function rawToTzn {
+    parameter rawVec.
+    parameter pos is -body:position.
+    parameter vel is velocity:orbit.
+
+    local zHat is pos:normalized.
+    local nHat is orbitNormal(pos, vel).
+    local tHat is vcrs(nHat, zHat):normalized.
+
+    return V(vdot(rawVec, tHat), vdot(rawVec, zHat), vdot(rawVec, nHat)).
 }
 
 // computes the compass heading for a launch into a target orbital inclination,
