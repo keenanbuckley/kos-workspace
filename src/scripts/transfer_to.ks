@@ -163,28 +163,51 @@ function seekEncounter {
     local eta0 is nd:eta.
     local step is orbit:period / 20.
     local maxDist is orbit:period * 2.
-    local dist is step.
+    local proBoost is 0.
 
-    until dist > maxDist {
-        if eta0 - dist > 0 {
-            set nd:eta to eta0 - dist. wait 0.
+    // sweep timing; if no encounter, add prograde to convert tangent
+    // orbit into a crossing orbit and retry
+    until proBoost > 20 {
+        local dist is step.
+        until dist > maxDist {
+            if eta0 - dist > 0 {
+                set nd:eta to eta0 - dist. wait 0.
+                if encOrbit(nd:orbit, tgtBody) <> "none" {
+                    if proBoost > 0 {
+                        print "Added " + round(proBoost, 0)
+                            + " m/s prograde to find encounter.".
+                    }
+                    print "Encounter found at eta offset "
+                        + round(-dist, 1) + "s.".
+                    return true.
+                }
+            }
+
+            set nd:eta to eta0 + dist. wait 0.
             if encOrbit(nd:orbit, tgtBody) <> "none" {
-                print "Encounter found at eta offset "
-                    + round(-dist, 1) + "s.".
+                if proBoost > 0 {
+                    print "Added " + round(proBoost, 0)
+                        + " m/s prograde to find encounter.".
+                }
+                print "Encounter found at eta offset +"
+                    + round(dist, 1) + "s.".
                 return true.
             }
+
+            set dist to dist + step.
         }
 
-        set nd:eta to eta0 + dist. wait 0.
+        set nd:eta to eta0. wait 0.
+        set nd:prograde to nd:prograde + 5. wait 0.
+        set proBoost to proBoost + 5.
         if encOrbit(nd:orbit, tgtBody) <> "none" {
-            print "Encounter found at eta offset +"
-                + round(dist, 1) + "s.".
+            print "Added " + round(proBoost, 0)
+                + " m/s prograde to find encounter.".
             return true.
         }
-
-        set dist to dist + step.
     }
 
+    set nd:prograde to nd:prograde - proBoost. wait 0.
     set nd:eta to eta0. wait 0.
     return false.
 }
