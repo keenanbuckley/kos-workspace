@@ -1,5 +1,6 @@
 // midcourse.ks — mid-course correction for encounter inclination and periapsis
-//   Requires a departure node with an encounter (run transfer_to first).
+//   Works with or without a departure node; requires an encounter
+//   with the target body on the current trajectory.
 //   Adds a radial+normal correction node at the transfer midpoint
 //   and a capture node at encounter periapsis.
 @lazyGlobal off.
@@ -21,16 +22,17 @@ function midcourse {
     parameter tgtInc.
     parameter capAlt.
 
-    // --- validate departure node ---
-    if not hasNode {
-        print "Error: no departure node found.".
-        return.
+    // --- resolve reference orbit and time ---
+    local refOrbit is orbit.
+    local refTime is time:seconds.
+    if hasNode {
+        set refOrbit to allNodes[0]:orbit.
+        set refTime to allNodes[0]:time.
     }
-    local departNode is allNodes[0].
-    local enc is encOrbit(departNode:orbit, tgtBody).
+    local enc is encOrbit(refOrbit, tgtBody).
     if enc = "none" {
-        print "Error: departure node does not encounter "
-            + tgtBody:name + ".".
+        print "Error: no encounter with " + tgtBody:name
+            + " found.".
         return.
     }
 
@@ -46,13 +48,13 @@ function midcourse {
     }
 
     // --- burn placement at transfer midpoint ---
-    local encTime is findEncounterTime(departNode:orbit, tgtBody).
+    local encTime is findEncounterTime(refOrbit, tgtBody).
     if encTime < 0 {
         print "Error: could not determine encounter time.".
         return.
     }
-    local burnTime is departNode:time
-        + 0.5 * (encTime - departNode:time).
+    local burnTime is refTime
+        + 0.5 * (encTime - refTime).
 
     // --- create trial node ---
     local nd is node(burnTime, 0, 0, 0).
