@@ -223,9 +223,9 @@ def connect(
         )
         sys.exit(1)
 
-    # Drain IAC negotiation + CPU menu (arrives within ~0.1s)
+    # Wait for CPU menu to fully appear before selecting
     print("Connected. Selecting CPU {}...".format(cpu), file=sys.stderr)
-    drain(sock, 5.0, silence=0.5)
+    drain(sock, 10.0, sentinel=("selection number",), silence=2.0)
 
     # Select CPU; drain response + scrollback in one pass
     send(sock, str(cpu))
