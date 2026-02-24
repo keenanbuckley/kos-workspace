@@ -44,6 +44,7 @@ when maxThrust = 0 or engineFlameout() then {
     print "Staging.".
     stage.
     wait until stage:ready.
+    wait 0.
     preserve.
 }
 
