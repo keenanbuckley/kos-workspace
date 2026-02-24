@@ -125,7 +125,9 @@ function tuneEncounter {
             local innerEta is choose edgeEta + step
                 if edgeEta < impactEta else edgeEta - step.
             set nd:eta to innerEta. wait 0.
-            local innerPeri is encPeriapsis(nd, tgtBody).
+            local innerEnc is encOrbit(nd:orbit, tgtBody).
+            local innerPeri is choose "none" if innerEnc = "none"
+                else innerEnc:periapsis.
             set nd:eta to impactEta. wait 0.
             if innerPeri = "none" or innerPeri >= capAlt { break. }
 
@@ -156,7 +158,7 @@ function seekEncounter {
     parameter nd.
     parameter tgtBody.
 
-    if encPeriapsis(nd, tgtBody) <> "none" { return true. }
+    if encOrbit(nd:orbit, tgtBody) <> "none" { return true. }
 
     local eta0 is nd:eta.
     local step is orbit:period / 20.
@@ -166,7 +168,7 @@ function seekEncounter {
     until dist > maxDist {
         if eta0 - dist > 0 {
             set nd:eta to eta0 - dist. wait 0.
-            if encPeriapsis(nd, tgtBody) <> "none" {
+            if encOrbit(nd:orbit, tgtBody) <> "none" {
                 print "Encounter found at eta offset "
                     + round(-dist, 1) + "s.".
                 return true.
@@ -174,7 +176,7 @@ function seekEncounter {
         }
 
         set nd:eta to eta0 + dist. wait 0.
-        if encPeriapsis(nd, tgtBody) <> "none" {
+        if encOrbit(nd:orbit, tgtBody) <> "none" {
             print "Encounter found at eta offset +"
                 + round(dist, 1) + "s.".
             return true.
@@ -203,7 +205,7 @@ function measureWindow {
     local probe is eta0 - step.
     until probe < eta0 - orbit:period * 2 {
         set nd:eta to probe. wait 0.
-        if encPeriapsis(nd, tgtBody) = "none" { break. }
+        if encOrbit(nd:orbit, tgtBody) = "none" { break. }
         set lo to probe.
         set probe to probe - step.
     }
@@ -212,7 +214,7 @@ function measureWindow {
     set probe to eta0 + step.
     until probe > eta0 + orbit:period * 2 {
         set nd:eta to probe. wait 0.
-        if encPeriapsis(nd, tgtBody) = "none" { break. }
+        if encOrbit(nd:orbit, tgtBody) = "none" { break. }
         set hi to probe.
         set probe to probe + step.
     }
@@ -241,9 +243,13 @@ function minimizePeriapsis {
         local x2 is lo + phi * (hi - lo).
 
         set nd:eta to x1. wait 0.
-        local p1 is encPeriapsis(nd, tgtBody).
+        local enc1 is encOrbit(nd:orbit, tgtBody).
+        local p1 is choose "none" if enc1 = "none"
+            else enc1:periapsis.
         set nd:eta to x2. wait 0.
-        local p2 is encPeriapsis(nd, tgtBody).
+        local enc2 is encOrbit(nd:orbit, tgtBody).
+        local p2 is choose "none" if enc2 = "none"
+            else enc2:periapsis.
 
         if p1 = "none"      { set lo to x1. }
         else if p2 = "none" { set hi to x2. }
@@ -254,7 +260,9 @@ function minimizePeriapsis {
     }
 
     set nd:eta to (lo + hi) / 2. wait 0.
-    local finalPeri is encPeriapsis(nd, tgtBody).
+    local finalEnc is encOrbit(nd:orbit, tgtBody).
+    local finalPeri is choose "none" if finalEnc = "none"
+        else finalEnc:periapsis.
     if finalPeri = "none" {
         set nd:eta to eta0. wait 0.
         print "Impact tuning failed, keeping original node.".
@@ -279,7 +287,9 @@ function seekPeriapsis {
 
     // verify impact point is below the target altitude
     set nd:eta to impactEta. wait 0.
-    local impactPeri is encPeriapsis(nd, tgtBody).
+    local impactEnc is encOrbit(nd:orbit, tgtBody).
+    local impactPeri is choose "none" if impactEnc = "none"
+        else impactEnc:periapsis.
     if impactPeri = "none" or impactPeri >= tgtPeri {
         set nd:eta to eta0. wait 0.
         print "Target periapsis " + round(tgtPeri, 0)
@@ -293,12 +303,15 @@ function seekPeriapsis {
 
     local bestEta is impactEta.
     local bestErr is abs(impactPeri - tgtPeri).
+    local midEnc is 0.
     local midPeri is 0.
     local iter is 0.
     until iter >= 30 {
         local mid is (lo + hi) / 2.
         set nd:eta to mid. wait 0.
-        set midPeri to encPeriapsis(nd, tgtBody).
+        set midEnc to encOrbit(nd:orbit, tgtBody).
+        set midPeri to choose "none" if midEnc = "none"
+            else midEnc:periapsis.
 
         if midPeri = "none" or midPeri >= tgtPeri {
             if impactIsHi { set lo to mid. }
@@ -319,7 +332,9 @@ function seekPeriapsis {
     }
 
     set nd:eta to bestEta. wait 0.
-    set midPeri to encPeriapsis(nd, tgtBody).
+    set midEnc to encOrbit(nd:orbit, tgtBody).
+    set midPeri to choose "none" if midEnc = "none"
+        else midEnc:periapsis.
     if midPeri = "none" or abs(midPeri - tgtPeri) > max(5000, tgtPeri * 0.1) {
         // revert to impact point if target unreachable or error > 10%
         set nd:eta to impactEta. wait 0.
@@ -337,18 +352,3 @@ function seekPeriapsis {
     }
 }
 
-// ------------------------------------------------------------
-// Utility: walk the patch chain to find encounter periapsis
-// Returns periapsis altitude (m) or "none"
-// ------------------------------------------------------------
-function encPeriapsis {
-    parameter nd.
-    parameter tgtBody.
-
-    local patch is nd:orbit.
-    until not patch:hasnextpatch {
-        set patch to patch:nextpatch.
-        if patch:body = tgtBody { return patch:periapsis. }
-    }
-    return "none".
-}

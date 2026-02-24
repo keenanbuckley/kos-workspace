@@ -437,3 +437,16 @@ function launchAzimuth {
     return azimuth.
 }
 
+// walk the patch chain from startOrbit to find an encounter with tgtBody
+// returns the encounter orbit object, or "none" if no encounter exists
+function encOrbit {
+    parameter initialOrbit.
+    parameter tgtBody.
+
+    local patch is initialOrbit.
+    until not patch:hasnextpatch {
+        set patch to patch:nextpatch.
+        if patch:body = tgtBody { return patch. }
+    }
+    return "none".
+}
