@@ -6,11 +6,10 @@ Orbital mechanics and guidance library built on the [kOS](https://ksp-kos.github
 
 | Module | What it implements |
 |---|---|
-| `orbit.ks` | Kepler's equation (Newton-Raphson, elliptic/hyperbolic/near-parabolic), vis-viva, Keplerian element conversions, true/mean anomaly, time-of-flight, Hohmann phase angles |
+| `orbit.ks` | Kepler's equation (Newton-Raphson, elliptic/hyperbolic/near-parabolic), vis-viva, Keplerian element conversions, true/mean anomaly, time-of-flight, Hohmann phase angles, Reference frame rotations (TZN, RNP, PQW, inertial) with flight-path-angle corrections for non-circular orbits |
 | `node.ks` | Maneuver planning: apsis changes at arbitrary true anomaly, orbital plane changes, SOI escape targeting |
 | `burn.ks` | Tsiolkovsky rocket equation, burn duration with mass depletion, split-burn timing |
 | `engine.ks` | Multi-engine throttle management, pressure-dependent Isp, flameout detection |
-| `frames.ks` | Reference frame rotations (TZN, RNP, PQW, inertial) with flight-path-angle corrections for non-circular orbits |
 | `trig.ks` | Hyperbolic trig (`sinh`, `cosh`, `asinh`, `acosh`) for hyperbolic orbit math |
 | `geo_nav.ks` | Haversine great-circle distance and bearing |
 
